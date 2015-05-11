@@ -1,10 +1,5 @@
 OpenFOAM-BenchmarkTest-channelReTau110
 "OpenFOAM Benchmark Test for Channel Flow (Re_tau=110)"
-Version 5
-
-Creator: Masashi IMANO <masashi.imano@gmail.com>
-Date: 11/May/2015
-Supported OpenFOAM version: 2.3.0
 
 1. 概要
 ================================================================================
@@ -212,7 +207,7 @@ $ ../bin/plot.py
 --------------------------------------------------------------------------------
 ベンチマーク実行用のディレクトリ/
   benchmark.conf     ベンチマークケースのパラメータや関数の設定
-  table.csv          ベンチマー結果を集計したファイル
+  table.csv          ベンチマーク結果を集計したファイル
   batchScript/*.sh   バッチジョブスクリプト(バッチジョブシステムの場合)
   n_*/mpi_*/simulationType_*/log.*[0-9]
                      各ベンチマークケースでのソルバーのログ
