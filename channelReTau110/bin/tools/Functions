@@ -1,0 +1,67 @@
+#!/bin/bash
+
+commonHeader()
+{
+    line="#Dir,mx,my,mz,deltaT,endTime"
+    line="$line,method,nx,ny,nz"
+    line="$line,simulationType,LESModel,delta"
+    line="$line,solver,preconditioner"
+    line="$line,Build,Date,Time,nProcs,nCells"
+    echo $line
+}
+
+parseCaseSettings()
+{
+    mx=`grep ' mx ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    my=`grep ' my ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    mz=`grep ' mz ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    deltaT=`grep ' deltaT ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    endTime=`grep ' endTime ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    method=`grep 'method ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    if [ "$method" == "simple" ];then
+	nx=`grep 'nx ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+	ny=`grep 'ny ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+	nz=`grep 'nz ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    else
+	nx="-"
+	ny="-"
+	nz="-"
+    fi
+    solver=`grep ' solver ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    if [ "$solver" == "PCG" ];then
+	preconditioner=`grep 'preconditioner ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    else
+	preconditioner=`grep 'smoother ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    fi
+
+    simulationType=`grep 'simulationType ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    LESModel=`grep 'LESModel ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    delta=`grep 'delta ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    if [ -z "$LESModel" ];then
+	if [ "$simulationType" == "LESModel" ];then
+	    LESModel="Smagorinsky"
+	    delta="vanDriest"
+	else
+	    LESModel="laminar"
+	    delta="-"
+	fi
+    fi
+
+    line="$mx,$my,$mz,$deltaT,$endTime"
+    line="$line,$method,$nx,$ny,$nz"
+    line="$line,$simulationType,$LESModel,$delta"
+    line="$line,$solver,$preconditioner"
+    echo $line
+}
+
+parseLog()
+{
+    log=$1
+    Build=`grep '^Build  *:' $log | sed "s/.*: \(.*\)$/\1/"`
+    Date=`grep '^Date  *:' $log | sed "s/.*: \(.*\)$/\1/"`
+    Time=`grep '^Time  *:'  $log | sed "s/.*: \(.*\)$/\1/"`
+    nProcs=`grep '^nProcs  *:' $log | sed "s/.*: \(.*\)$/\1/"`
+    nCells=`awk '/cell\(s\)/ {print $3}'  $log`
+
+    echo "$Build,$Date,$Time,$nProcs,$nCells"
+}

@@ -1,0 +1,50 @@
+blockMeshDict
+{
+  N (240 130 96);
+}
+
+controlDict
+{
+  deltaT          0.002;
+  endTime         0.022;
+  libs            "";
+}
+
+decomposeParDict
+{
+  numberOfSubdomains  16;
+
+  method scotch;
+
+  simpleCoeffs
+  {
+      nx 4;
+      ny 2;
+      nz 2;
+  }
+}
+
+fvSolution
+{
+  solvers
+  {
+      p
+      {
+          solver           PCG;
+          smoother         FDIC;
+          preconditioner   FDIC;
+      }
+  }
+}
+
+turbulenceProperties
+{
+  simulationType laminar;
+}
+
+LESProperties
+{
+  LESModel laminar;
+  delta cubeRootVol;
+}
+

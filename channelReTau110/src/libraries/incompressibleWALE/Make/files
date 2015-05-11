@@ -1,0 +1,4 @@
+WALE/WALE.C
+
+LIB = $(FOAM_USER_LIBBIN)/libincompressibleWALE
+
