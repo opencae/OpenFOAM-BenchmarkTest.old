@@ -55,7 +55,7 @@ for nCells in nCellsArray:
                 srAve=executionTimeAve[0]/executionTimeAve
                 peAve=srAve/(mpi/mpi[0])*100
 
-                base=str(nCells)+"-"+LESModel+"-"+solver+"-"+pre
+                base=str(nCells)+"cells-"+LESModel+"-"+solver+"-"+pre
                 print base
 
                 xmin=mpi[0]
@@ -133,7 +133,7 @@ for nCells in nCellsArray:
                 executionTimeAve[i]=np.average(executionTime)
                 executionTimeSTD[i]=np.std(executionTime)
 
-            base=str(nCells)+"-"+LESModel+"-"+str(nProcs)
+            base=str(nCells)+"cells-"+LESModel+"-"+str(nProcs)+"MPI-time"
             print base
 
             x=np.arange(len(sn))
@@ -142,14 +142,13 @@ for nCells in nCellsArray:
             plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, fmt='.', linewidth=2)
             plt.xlabel('Matrix solver for pressure equation')
             plt.xticks(x,sn, rotation=-90)
-            plt.tick_params(axis='x', which='major', labelsize=9)
             plt.ylabel('Execution time per time step [s]')
             ymin, ymax = plt.ylim()
             ymin=0
             plt.ylim(ymin,ymax)
             plt.legend(loc='lower left')
             plt.grid()
-            pylab.subplots_adjust(bottom=0.4)
+            pylab.subplots_adjust(bottom=0.5)
             plt.savefig(base+".pdf")
             plt.cla()
 

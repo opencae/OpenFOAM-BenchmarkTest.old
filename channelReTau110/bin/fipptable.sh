@@ -7,6 +7,7 @@ tablefile="fipptable.csv"
 outputfile=$PWD/$tablefile
 
 line="$(commonHeader)" 
+line="$line,Steps,ExectutionTime0(s),ExectutionTime1(s),ExectutionTime/Steps(s)"
 line="$line,Elapsed(s),User(s),System(s)"
 line="$line,MFLOPS,MFLOPS/PEAK(%),MIPS,MIPS/PEAK(%)"
 line="$line,Mem throughput_chip(MB/S),Mem throughput/PEAK(%),SIMD(%)"
