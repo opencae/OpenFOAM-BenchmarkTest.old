@@ -9,7 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 data=np.genfromtxt("table.csv", names=True, delimiter=',', dtype=None)
 
-pp = PdfPages('table.pdf')
+pp = PdfPages('plot.pdf')
 
 mpl.rcParams.update({'font.size': 12})
 
@@ -49,6 +49,11 @@ for nCells in nCellsArray:
             print base
 
             x=np.arange(len(sn))
+
+            offset=(x[len(x)-1]-x[0])*0.05
+            xmin=x[0]-offset
+            xmax=x[len(x)-1]+offset
+
             plt.title("Execution time per time step\n("+
                       str(nCells/1e+6)+"M cells, "+LESModel+" ,"+str(nProcs)+" MPI)")
             plt.plot(x,executionTimeAve, label="Execution time per time step [s]", linewidth=1)
@@ -58,8 +63,8 @@ for nCells in nCellsArray:
             plt.xticks(x,sn, rotation=-90)
             ymin, ymax = plt.ylim()
             ymin=0
+            plt.xlim(xmin, xmax)
             plt.ylim(ymin,ymax*1.1)
-#            plt.legend(loc='lower left')
             plt.grid()
             pp.savefig()
             plt.clf()
@@ -105,8 +110,9 @@ for nCells in nCellsArray:
                 base=str(nCells)+"cells-"+LESModel+"-"+solver+"-"+pre
                 print base
 
-                xmin=mpi[0]
-                xmax=mpi[len(mpi)-1]
+                offset=(mpi[len(mpi)-1]-mpi[0])*0.05
+                xmin=mpi[0]-offset
+                xmax=mpi[len(mpi)-1]+offset
 
                 plt.title("Execution time per time step\n("+
                           str(nCells/1e+6)+"M cells, "+LESModel+" ,"+solver+"-"+pre+")")
@@ -120,7 +126,6 @@ for nCells in nCellsArray:
                 ymin=0
                 plt.xlim(xmin, xmax)
                 plt.ylim(ymin,ymax*1.1)
-#                plt.legend(loc='lower left')
                 pp.savefig()
                 plt.clf()
 
@@ -154,7 +159,6 @@ for nCells in nCellsArray:
                 ymin, ymax = plt.ylim()
                 ymin=0
                 plt.ylim(ymin,ymax*1.1)
-                plt.legend(loc='lower left')
                 pp.savefig()
                 plt.clf()
 
