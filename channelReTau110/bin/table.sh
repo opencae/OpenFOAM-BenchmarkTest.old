@@ -19,8 +19,8 @@ do
 	do
 	    echo "  log= $log"
 	    grep "^End" $log >& /dev/null 
-	    [ ! $? ] && continue
-	    line="$Dir,$(parseCaseSettings),$(parseLog $log)"
+	    [ "$?" -ne 0 ] && continue
+	    line="$Dir,$log,$(parseCaseSettings),$(parseLog $log)"
 
 	    ExecutionTime=`awk 'BEGIN {n=0} \
 		/^ExecutionTime/ {t=$3;if (n==0) t0=t;n++} \

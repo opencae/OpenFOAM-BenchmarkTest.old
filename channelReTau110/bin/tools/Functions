@@ -2,7 +2,7 @@
 
 commonHeader()
 {
-    line="#Dir,mx,my,mz,deltaT,endTime"
+    line="#Dir,file,mx,my,mz,deltaT,endTime"
     line="$line,method,nx,ny,nz"
     line="$line,simulationType,LESModel,delta"
     line="$line,solver,preconditioner"

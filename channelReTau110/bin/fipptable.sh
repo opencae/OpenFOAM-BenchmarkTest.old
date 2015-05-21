@@ -20,7 +20,9 @@ for Dir in n_*/mpi_*/simulationType_*;do
 	for log in log.*[0-9]
 	do
 	    echo "  log= $log"
-	    line="$Dir,$(parseCaseSettings),$(parseLog $log)"
+	    grep "^End" $log >& /dev/null 
+	    [ "$?" -ne 0 ] && continue
+	    line="$Dir,$log,$(parseCaseSettings),$(parseLog $log)"
 
 	    ExecutionTime=`awk 'BEGIN {n=0} \
 		/^ExecutionTime/ {t=$3;if (n==0) t0=t;n++} \
