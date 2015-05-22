@@ -1,0 +1,254 @@
+[warn] Epoll ADD(4) on fd 1 failed.  Old events were 0; read change was 0 (none); write change was 1 (add): Operation not permitted
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : dev-f6be0d888eec
+Exec   : pimpleFoam -parallel
+Date   : May 21 2015
+Time   : 18:29:07
+Host   : "example.com"
+PID    : 26763
+Case   : /home/user/VandV/OpenFOAM/OpenFOAM-BenchmarkTest/channelReTau110/OpenFOAM-dev-dev/n_00008/mpi_00008/simulationType_laminar-LESModel_laminar-delta_cubeRootVol-solver_GAMG-smoother_DICGaussSeidel
+nProcs : 8
+Slaves : 
+7
+(
+"example.com.26764"
+"example.com.26765"
+"example.com.26766"
+"example.com.26767"
+"example.com.26768"
+"example.com.26769"
+"example.com.26770"
+)
+
+Pstream initialized with:
+    floatTransfer      : 0
+    nProcsSimpleSum    : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+sigFpe : Enabling floating point exception trapping (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0
+
+
+PIMPLE: Operating solver in PISO mode
+
+Reading field p
+
+Reading field U
+
+Reading/calculating face flux field phi
+
+Selecting incompressible transport model Newtonian
+Selecting turbulence model type laminar
+Creating finite volume options from "system/fvOptions"
+
+Selecting finite volume options model type vectorSemiImplicitSource
+    Source: momentumSource
+    - applying source for all time
+    - selecting all cells
+    - selected 2995200 cell(s) with volume 197.392
+
+
+Starting time loop
+
+fieldAverage fieldAverage1:
+    Starting averaging at time 0
+
+Courant Number mean: 0.458366 max: 0.458366
+Time = 0.002
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 1, Final residual = 8.87492e-07, No Iterations 6
+DILUPBiCG:  Solving for Uy, Initial residual = 1, Final residual = 1.37579e-06, No Iterations 6
+DILUPBiCG:  Solving for Uz, Initial residual = 1, Final residual = 1.37736e-06, No Iterations 6
+GAMG:  Solving for p, Initial residual = 1, Final residual = 0.0317388, No Iterations 2
+time step continuity errors : sum local = 4.96013e-12, global = -1.28272e-21, cumulative = -1.28272e-21
+GAMG:  Solving for p, Initial residual = 0.827356, Final residual = 8.28243e-07, No Iterations 19
+time step continuity errors : sum local = 1.70996e-16, global = -1.38274e-20, cumulative = -1.51101e-20
+ExecutionTime = 22.44 s  ClockTime = 23 s
+
+fieldAverage fieldAverage1:
+    Reading/initialising field UMean
+    Reading/initialising field pMean
+    Reading/initialising field UPrime2Mean
+    Reading/initialising field pPrime2Mean
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.45748 max: 0.458427
+Time = 0.004
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.209056, Final residual = 8.29581e-06, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.248694, Final residual = 5.42633e-07, No Iterations 5
+DILUPBiCG:  Solving for Uz, Initial residual = 0.256578, Final residual = 9.90969e-06, No Iterations 4
+GAMG:  Solving for p, Initial residual = 0.991819, Final residual = 0.0186604, No Iterations 2
+time step continuity errors : sum local = 3.83942e-11, global = -4.13141e-20, cumulative = -5.64242e-20
+GAMG:  Solving for p, Initial residual = 0.912447, Final residual = 9.09494e-07, No Iterations 20
+time step continuity errors : sum local = 2.12333e-15, global = -2.75454e-20, cumulative = -8.39696e-20
+ExecutionTime = 43.03 s  ClockTime = 43 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.457049 max: 0.458461
+Time = 0.006
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.107225, Final residual = 4.12757e-06, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.357769, Final residual = 6.76605e-07, No Iterations 5
+DILUPBiCG:  Solving for Uz, Initial residual = 0.390137, Final residual = 8.42911e-07, No Iterations 5
+GAMG:  Solving for p, Initial residual = 0.902108, Final residual = 0.0141829, No Iterations 2
+time step continuity errors : sum local = 3.09115e-11, global = -7.56781e-20, cumulative = -1.59648e-19
+GAMG:  Solving for p, Initial residual = 0.88047, Final residual = 9.21418e-07, No Iterations 20
+time step continuity errors : sum local = 2.10787e-15, global = -7.95674e-20, cumulative = -2.39215e-19
+ExecutionTime = 63.69 s  ClockTime = 64 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.456225 max: 0.458527
+Time = 0.008
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.0700116, Final residual = 2.48399e-06, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.200073, Final residual = 5.25528e-07, No Iterations 5
+DILUPBiCG:  Solving for Uz, Initial residual = 0.22249, Final residual = 5.56038e-07, No Iterations 5
+GAMG:  Solving for p, Initial residual = 0.872017, Final residual = 0.0113161, No Iterations 2
+time step continuity errors : sum local = 2.52268e-11, global = -2.74649e-20, cumulative = -2.6668e-19
+GAMG:  Solving for p, Initial residual = 0.858877, Final residual = 8.91368e-07, No Iterations 19
+time step continuity errors : sum local = 2.04571e-15, global = -2.96457e-20, cumulative = -2.96326e-19
+ExecutionTime = 83.75 s  ClockTime = 84 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.455503 max: 0.458592
+Time = 0.01
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.0510603, Final residual = 1.80504e-06, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.167494, Final residual = 1.86487e-06, No Iterations 5
+DILUPBiCG:  Solving for Uz, Initial residual = 0.185294, Final residual = 8.39321e-07, No Iterations 5
+GAMG:  Solving for p, Initial residual = 0.84962, Final residual = 0.00976805, No Iterations 2
+time step continuity errors : sum local = 2.14692e-11, global = 1.37619e-20, cumulative = -2.82564e-19
+GAMG:  Solving for p, Initial residual = 0.84848, Final residual = 5.03813e-07, No Iterations 20
+time step continuity errors : sum local = 1.11507e-15, global = 1.67209e-20, cumulative = -2.65843e-19
+ExecutionTime = 104.43 s  ClockTime = 105 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.454888 max: 0.458656
+Time = 0.012
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.0396836, Final residual = 1.43536e-06, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.155913, Final residual = 4.09141e-07, No Iterations 5
+DILUPBiCG:  Solving for Uz, Initial residual = 0.167367, Final residual = 4.53678e-06, No Iterations 4
+GAMG:  Solving for p, Initial residual = 0.831751, Final residual = 0.00900676, No Iterations 2
+time step continuity errors : sum local = 1.84533e-11, global = -5.75397e-21, cumulative = -2.71597e-19
+GAMG:  Solving for p, Initial residual = 0.822963, Final residual = 9.1505e-07, No Iterations 19
+time step continuity errors : sum local = 1.91611e-15, global = -5.19634e-21, cumulative = -2.76793e-19
+ExecutionTime = 124.32 s  ClockTime = 125 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.454354 max: 0.45872
+Time = 0.014
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.0321414, Final residual = 1.18569e-06, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.151122, Final residual = 3.31006e-07, No Iterations 5
+DILUPBiCG:  Solving for Uz, Initial residual = 0.158051, Final residual = 1.77999e-06, No Iterations 4
+GAMG:  Solving for p, Initial residual = 0.809817, Final residual = 0.0395841, No Iterations 1
+time step continuity errors : sum local = 7.40982e-11, global = 3.25367e-20, cumulative = -2.44257e-19
+GAMG:  Solving for p, Initial residual = 0.814131, Final residual = 9.74631e-07, No Iterations 20
+time step continuity errors : sum local = 1.81285e-15, global = 3.86466e-20, cumulative = -2.0561e-19
+ExecutionTime = 144.21 s  ClockTime = 145 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.45388 max: 0.458784
+Time = 0.016
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.0268841, Final residual = 9.90107e-07, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.151029, Final residual = 7.14036e-06, No Iterations 4
+DILUPBiCG:  Solving for Uz, Initial residual = 0.156584, Final residual = 1.80936e-06, No Iterations 4
+GAMG:  Solving for p, Initial residual = 0.80356, Final residual = 0.0386324, No Iterations 1
+time step continuity errors : sum local = 6.45265e-11, global = 4.94978e-20, cumulative = -1.56112e-19
+GAMG:  Solving for p, Initial residual = 0.798722, Final residual = 9.91794e-07, No Iterations 19
+time step continuity errors : sum local = 1.66679e-15, global = 3.65603e-20, cumulative = -1.19552e-19
+ExecutionTime = 163.31 s  ClockTime = 164 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.453454 max: 0.458846
+Time = 0.018
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.0230511, Final residual = 8.32025e-07, No Iterations 3
+DILUPBiCG:  Solving for Uy, Initial residual = 0.149107, Final residual = 5.81465e-06, No Iterations 4
+DILUPBiCG:  Solving for Uz, Initial residual = 0.15855, Final residual = 1.7513e-06, No Iterations 4
+GAMG:  Solving for p, Initial residual = 0.786878, Final residual = 0.038389, No Iterations 1
+time step continuity errors : sum local = 5.81193e-11, global = -3.72387e-20, cumulative = -1.56791e-19
+GAMG:  Solving for p, Initial residual = 0.791375, Final residual = 9.27175e-07, No Iterations 20
+time step continuity errors : sum local = 1.37627e-15, global = -2.86738e-20, cumulative = -1.85464e-19
+ExecutionTime = 183.01 s  ClockTime = 184 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.453067 max: 0.458909
+Time = 0.02
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.0201493, Final residual = 9.42996e-06, No Iterations 2
+DILUPBiCG:  Solving for Uy, Initial residual = 0.14811, Final residual = 5.83044e-06, No Iterations 4
+DILUPBiCG:  Solving for Uz, Initial residual = 0.154305, Final residual = 1.68072e-06, No Iterations 4
+GAMG:  Solving for p, Initial residual = 0.989942, Final residual = 0.0376824, No Iterations 2
+time step continuity errors : sum local = 9.89943e-10, global = -5.57087e-20, cumulative = -2.41173e-19
+GAMG:  Solving for p, Initial residual = 0.909065, Final residual = 9.7001e-07, No Iterations 23
+time step continuity errors : sum local = 2.81662e-14, global = -7.1338e-20, cumulative = -3.12511e-19
+ExecutionTime = 204.95 s  ClockTime = 206 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+Courant Number mean: 0.452712 max: 0.458971
+Time = 0.022
+
+PIMPLE: iteration 1
+DILUPBiCG:  Solving for Ux, Initial residual = 0.017889, Final residual = 8.57219e-06, No Iterations 2
+DILUPBiCG:  Solving for Uy, Initial residual = 0.447384, Final residual = 8.13219e-07, No Iterations 5
+DILUPBiCG:  Solving for Uz, Initial residual = 0.459963, Final residual = 6.95905e-06, No Iterations 4
+GAMG:  Solving for p, Initial residual = 0.904505, Final residual = 0.0338328, No Iterations 2
+time step continuity errors : sum local = 9.32127e-10, global = 6.77004e-20, cumulative = -2.44811e-19
+GAMG:  Solving for p, Initial residual = 0.891808, Final residual = 9.46518e-07, No Iterations 23
+time step continuity errors : sum local = 2.71124e-14, global = 7.33564e-20, cumulative = -1.71454e-19
+ExecutionTime = 227.2 s  ClockTime = 228 s
+
+fieldAverage fieldAverage1 output:
+    Calculating averages
+
+    Writing average fields
+
+End
+
+Finalising parallel run
