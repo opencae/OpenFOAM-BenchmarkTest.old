@@ -33,6 +33,8 @@ solvers
 
         tolerance        1e-6;
 	relTol           0.05;
+
+        maxIter          5000;
     };
 
     pFinal
@@ -43,16 +45,18 @@ solvers
 
     "(U|k)"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
-        tolerance       1e-05;
-        relTol          0.1;
+        solver           PBiCG;
+        preconditioner   DILU;
+        tolerance        1e-05;
+        relTol           0.1;
+
+        maxIter          5000;
     }
 
     "(U|k)Final"
     {
         $U;
-        relTol          0;
+        relTol           0;
     }
 }
 
