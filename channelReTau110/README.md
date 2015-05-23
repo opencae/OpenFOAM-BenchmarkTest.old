@@ -75,7 +75,13 @@ mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
       "GAMG-smoother_symGaussSeidel" \
     )
 
-標準条件: PCG-preconditioner_FDIC
+標準条件: PCG-preconditioner_DIC
+また，以下のソルバーもできるだけ計算する．
+PCG-preconditioner_FDIC
+GAMG-smoother_FDIC
+GAMG-smoother_DIC
+GAMG-smoother_DICGaussSeidel
+GAMG-smoother_GaussSeidel  
 
 ### MAX_NUMBER_OF_LOOP(ベンチマークテストの繰り返し数)
 
