@@ -67,6 +67,6 @@ do
     )
 done
 
-tar jcf caseSettings-log-$$.tar.bz2 n_*/mpi_*/simulationType_*/{caseSettings,log.pimpleFoam.$$.*th}
+tar jcf caseSettings-log-$$.tar.bz2 n_*/mpi_*/simulationType_*/{0,constant/*Properties,system,caseSettings,log.pimpleFoam.$$.*th}
 rm -f n_*/mpi_*/simulationType_*/log.pimpleFoam.$$.*th
 
