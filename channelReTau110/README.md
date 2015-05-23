@@ -165,7 +165,14 @@ channelReTau110のディレクトリの下に，ベンチマーク実行用の�
 
     $ ../bin/table.sh
 
-ベンチマーク結果を集計したファイルtable.csvが作成される．
+ベンチマーク結果を集計したファイルtable.csv，および
+ソルバのログと設定ファイル(caseSettings)のアーカイブファイル
+caseSettings-log-ID.tar.bz2 が作成される．
+
+なお，アーカイブファイルに収録されるソルバのログは，
+先頭がBuildから始まるヘッダーから，先頭がEndのまでの部分を取り出し，
+かつ，プライバシーのため，ヘッダーにおける，HostとCaseの行，および
+Slaveの情報を消している．
 
 ## ベンチマーク結果のプロット
 
@@ -184,8 +191,7 @@ channelReTau110のディレクトリの下に，ベンチマーク実行用の�
     benchmark.conf     ベンチマークケースのパラメータや関数の設定
     table.csv          ベンチマーク結果を集計したファイル
     batchScript/*.sh   バッチジョブスクリプト(バッチジョブシステムの場合)
-    n_*/mpi_*/simulationType_*/log.*[0-9] 各ベンチマークケースでのソルバーのログ
-    n_*/mpi_*/simulationType_*/log.*[0-9].*.txt 各ベンチマークケースでのプロファイラ結果(もしあれば)
+    caseSettings-log-ID.tar.bz2 ソルバのログと設定のアーカイブ
 
 ### README.md
 
