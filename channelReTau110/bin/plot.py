@@ -8,7 +8,9 @@ import pylab
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-data=np.genfromtxt("table.csv", names=True, delimiter=',', dtype=None)
+dataorig=np.genfromtxt("table.csv", names=True, delimiter=',', dtype=None)
+
+data=np.sort(dataorig)
 
 pp = PdfPages('plot.pdf')
 
@@ -69,6 +71,10 @@ for nCells in nCellsArray:
             plt.grid()
             pp.savefig()
             plt.clf()
+
+if len(nCellsArray)==1:
+    pp.close()
+    exit(0)
 
 pylab.subplots_adjust(bottom=0.1)
 
