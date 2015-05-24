@@ -72,8 +72,8 @@ LimitNumberOfBatchQueue()
 
 mpi="00001"
 solver="PCG"
-preconditioner="FDIC"
-smoother="FDIC"
+preconditioner="DIC"
+smoother="DIC"
 simulationType="laminar"
 LESModel="laminar"
 delta="cubeRootVol"
@@ -184,6 +184,14 @@ do
 			    fi
 
 			    (cd $dir3
+				echo "dir= $dir/$dir2/$dir3"
+
+				ndone=`ls log.*[0-9] | wc -l`
+				if [ "$ndone" -ge "$MAX_NUMBER_OF_LOOP" ];then
+				    echo "Allready run in $MAX_NUMBER_OF_LOOP time(s). Skip running" 
+				    continue
+				fi
+
 				(cd constant
 				    rm -rf polyMesh
 				    ln -s ../../constant/polyMesh .
@@ -201,9 +209,20 @@ do
 				    done
 				fi
 
-				echo "dir= $dir/$dir2/$dir3"
-
 				makeCaseSettings
+
+				if [ "$solver" == "PCG" -a ${preconditioner%%+*} == "GAMG" ];then
+				    smoother=${preconditioner##*+}
+				    mv system/fvSolution system/fvSolution.orig
+				    sed \
+"s/\$:fvSolution.solvers.p.preconditioner;/\
+{preconditioner GAMG;\
+agglomerator faceAreaPair;\
+nCellsInCoarsestLevel 100;\
+mergeLevels 1;\
+smoother ${smoother};}/"\
+ system/fvSolution.orig > system/fvSolution
+				fi
 
 				batchFile=solve.sh
 				if [ -f $batchScriptDir/$batchFile ];then
