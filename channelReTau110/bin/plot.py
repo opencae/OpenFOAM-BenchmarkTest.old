@@ -7,12 +7,29 @@ import numpy as np
 import pylab
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from optparse import OptionParser
+
+parser = OptionParser()
+
+parser.add_option("-s", "--standard",
+                  action="store_true", dest="standard",
+                  help="plot cases under standard conditions")
+
+(options, args) = parser.parse_args()
+
 
 dataorig=np.genfromtxt("table.csv", names=True, delimiter=',', dtype=None)
 
 data=np.sort(dataorig)
 
-pp = PdfPages('plot.pdf')
+print options.standard
+
+if options.standard:
+    plotfile='plot-standard.pdf'
+else:
+    plotfile='plot.pdf'
+
+pp = PdfPages(plotfile)
 
 mpl.rcParams.update({'font.size': 12})
 
@@ -24,7 +41,11 @@ nProcsArray=np.unique(data['nProcs'])
 pylab.subplots_adjust(bottom=0.5)
             
 for nCells in nCellsArray:
+    if options.standard and nCells != 2995200:
+        continue
     for LESModel in LESModelArray:
+        if options.standard and LESModel != "laminar":
+            continue
         for nProcs in nProcsArray:
             idx=np.where(
                 (data['nCells']==nCells)
@@ -72,18 +93,26 @@ for nCells in nCellsArray:
             pp.savefig()
             plt.clf()
 
-if len(nCellsArray)==1:
+if len(nProcsArray)==1:
     pp.close()
     exit(0)
 
 pylab.subplots_adjust(bottom=0.1)
 
 for nCells in nCellsArray:
+    if options.standard and nCells != 2995200:
+        continue
     for LESModel in LESModelArray:
+        if options.standard and LESModel != "laminar":
+            continue
         for solver in solverArray:
+            if options.standard and solver != "PCG":
+                continue
             idxSolver=np.where(data['solver']==solver)
             preArray=np.unique(data['preconditioner'][idxSolver])
             for pre in preArray:
+                if options.standard and pre != "DIC":
+                    continue
                 idx=np.where(
                     (data['nCells']==nCells)
                     & (data['LESModel']==LESModel)
