@@ -66,6 +66,12 @@ mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
     solversArray=(\
       "PCG-preconditioner_FDIC" \
       "PCG-preconditioner_DIC" \
+      "PCG-preconditioner_GAMG+DIC" \
+      "PCG-preconditioner_GAMG+FDIC" \
+      "PCG-preconditioner_GAMG+DICGaussSeidel" \
+      "PCG-preconditioner_GAMG+GaussSeidel" \
+      "PCG-preconditioner_GAMG+nonBlockingGaussSeidel" \
+      "PCG-preconditioner_GAMG+symGaussSeidel" \
       "PCG-preconditioner_diagonal" \
       "GAMG-smoother_DIC" \
       "GAMG-smoother_FDIC" \
@@ -202,25 +208,31 @@ Slaveの情報を消している．
 ### README.md
 
     # channelReTau110-ハードウェア名称-コンパイラ-MPIライブラリ
+
+    ## 測定者情報
+
     * 測定者: (本名で無くても構いません)
-    * 
-    * ハードウェア情報
-      - ハードウェア名称: (例: NEC Express5800/HR120a-1)
-      - CPUの種別: (例: Intel Xeon CPU E5-2680 v2)
-      - CPUの周波数: (例: 2.80GHz)
-      - コア数/CPU: (例: 10)
-      - CPU数/ノード: (例: 2)
-      - メモリ量/ノード: (例: 28GB)
-      - インターフェース種別: (例: FDR-InfiniBand) 
-      - インターフェース数/ノード: (例: 1基) 
-      - インターフェース・スループット/基: (例: 56Gbps) 
-      - その他特記事項:
-    * ソフトウェア情報
-      - OpenFOAMのバージョン: (例: ###)
-      - ビルドに使用したコンパイラ: (例: Gcc-###)
-      - コンパイラの最適化オプション: (例: -O3)
-      - 使用したMPIライブラリ: (例: openmpi-###)
-      - その他特記事項:
+
+    ## ハードウェア情報
+    * ハードウェア名称: (例: NEC Express5800/HR120a-1)
+    * CPUの種別: (例: Intel Xeon CPU E5-2680 v2)
+    * CPUの周波数: (例: 2.80GHz)
+    * コア数/CPU: (例: 10)
+    * CPU数/ノード: (例: 2)
+    * メモリ量/ノード: (例: 28GB)
+    * メモリ種別: SDRAM DDR3-1333 ECC
+    * メモリ帯域幅: 85 GB/s
+    * インターフェース種別: (例: FDR-InfiniBand) 
+    * インターフェース数/ノード: (例: 1基) 
+    * インターフェース・スループット/基: (例: 56Gbps) 
+    * その他特記事項:
+
+    ## ソフトウェア情報
+    * OpenFOAMのバージョン: (例: ###)
+    * ビルドに使用したコンパイラ: (例: Gcc-###)
+    * コンパイラの最適化オプション: (例: -O3)
+    * 使用したMPIライブラリ: (例: openmpi-###)
+    * その他特記事項:
 
 ## channelReTau110のケースディレクトリの設定
 ### 設定ファイル
