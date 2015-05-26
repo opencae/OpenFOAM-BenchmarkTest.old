@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import matplotlib as mpl
 mpl.use('Agg')
 import numpy as np
@@ -30,6 +31,8 @@ else:
     plotfile='plot.pdf'
 
 pp = PdfPages(plotfile)
+
+basename=os.path.basename(os.getcwd())
 
 mpl.rcParams.update({'font.size': 12})
 
@@ -78,7 +81,7 @@ for nCells in nCellsArray:
             xmin=x[0]-offset
             xmax=x[len(x)-1]+offset
 
-            plt.title("Execution time per time step\n("+
+            plt.title(basename+"\n"+
                       str(nCells/1e+6)+"M cells, "+LESModel+" ,"+str(nProcs)+" MPI)")
             plt.plot(x,executionTimeAve, label="Execution time per time step [s]", linewidth=1)
             plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, fmt='.', linewidth=2)
@@ -150,7 +153,7 @@ for nCells in nCellsArray:
                 xmin=mpi[0]-offset
                 xmax=mpi[len(mpi)-1]+offset
 
-                plt.title("Execution time per time step\n("+
+                plt.title(basename+"\n"+
                           str(nCells/1e+6)+"M cells, "+LESModel+" ,"+solver+"-"+pre+")")
                 plt.xlabel('Number of MPI processes')
                 plt.xticks(mpi)
@@ -165,7 +168,7 @@ for nCells in nCellsArray:
                 pp.savefig()
                 plt.clf()
 
-                plt.title("Speedup ratio\n("+
+                plt.title(basename+"\n"+
                           str(nCells/1e+6)+"M cells, "+LESModel+" ,"+solver+"-"+pre+")")
                 plt.xlabel('Number of MPI processes')
                 plt.xticks(mpi)
@@ -182,7 +185,7 @@ for nCells in nCellsArray:
                 pp.savefig()
                 plt.clf()
 
-                plt.title("Parallel efficiency\n("+
+                plt.title(basename+"\n"+
                           str(nCells/1e+6)+"M cells, "+LESModel+" ,"+solver+"-"+pre+")")
                 plt.xlabel('Number of MPI processes')
                 plt.xticks(mpi)
