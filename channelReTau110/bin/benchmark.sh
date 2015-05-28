@@ -63,7 +63,7 @@ LimitNumberOfBatchQueue()
     do
 	nq=$(NumberOfBatchQueue)
         [ "$nq" -lt "$MAX_NUMBER_OF_QUEUE" ] &&  break
-	sleep 5
+	sleep 1
     done
 }
     
@@ -115,7 +115,7 @@ do
 		    BatchSubmit $batchFile 1
 
 		    while [ ! -f constant/polyMesh/faces ];do
-			sleep 5
+			sleep 1
 		    done
 		else
 		    blockMesh >& log.blockMesh
@@ -151,7 +151,7 @@ do
 
 				processorLast=`expr $mpi - 1`
 				while [ ! -f processor${processorLast}/0/p ];do
-				    sleep 5
+				    sleep 1
 				done
 			    else
 				decomposePar -cellDist >& log.decomposePar
