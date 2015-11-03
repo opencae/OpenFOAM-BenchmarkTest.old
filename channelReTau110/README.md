@@ -28,16 +28,12 @@ OpenFOAM-BenchmarkTest-channelReTau110は
 格子数倍率nは，格子数374400(nx=120,ny=65,nz=48)をベースにとした格子の倍数である．
 ベンチマークケースnArrayの要素にはnを0埋めの5桁の整数値，かつ文字列形式で記述する．
 
-    nArray=( "00001" "00002" "00004"  "00008" )
-
 標準条件: n=00008(格子数2995200=約3M)
 
 ### mpiArray(MPI並列数mpiのベンチマークケース)
 
 MPI並列数mpiのベンチマークケースmpiArrayの要素には，
 mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
-
-    mpiArray=( "00008" "00010" "00012" "00016" "00020" "00024" )
 
 標準条件: 無し．
 ただし，並列化効率をみるために複数のMPI並列数で計算することを推奨．
@@ -46,15 +42,12 @@ mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
 
 乱流モデルのベンチマークケースsimulationTypesArrayの要素には，
 以下の形式の文字列を羅列する．
-"(simulationTypesの値)-LESModel_(LESModelの値)-delta_(deltaの値)"
+"(simulationTypesの値)-LESModel_(LESModelの値)-delta_(deltaの値)-calcInterval_(calcIntervalの値)"
 
-    simulationTypesArray=(\
-      "laminar-LESModel_laminar-delta_cubeRootVol" \
-      "LESModel-LESModel_Smagorinsky-delta_vanDriest" \
-    )
-
-標準条件: laminar-LESModel_laminar-delta_cubeRootVol
-ただし，LESModel-LESModel_Smagorinsky-delta_vanDriest のケースも計算することを強く推奨．
+標準条件: laminar-LESModel_laminar-delta_cubeRootVol-calcInterval_1
+ただし，
+LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_100
+のケースも計算することを強く推奨．
 
 ### solversArray(圧力に対する線型ソルバのベンチマークケース)
 
@@ -62,24 +55,6 @@ mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
 以下の形式の文字列を羅列する．
 "PCG-preconditioner_(preconditionerの値)"
 "GAMG-smoother_(smootherの値)"
-
-    solversArray=(\
-      "PCG-preconditioner_FDIC" \
-      "PCG-preconditioner_DIC" \
-      "PCG-preconditioner_GAMG+DIC" \
-      "PCG-preconditioner_GAMG+FDIC" \
-      "PCG-preconditioner_GAMG+DICGaussSeidel" \
-      "PCG-preconditioner_GAMG+GaussSeidel" \
-      "PCG-preconditioner_GAMG+nonBlockingGaussSeidel" \
-      "PCG-preconditioner_GAMG+symGaussSeidel" \
-      "PCG-preconditioner_diagonal" \
-      "GAMG-smoother_DIC" \
-      "GAMG-smoother_FDIC" \
-      "GAMG-smoother_DICGaussSeidel" \
-      "GAMG-smoother_GaussSeidel" \
-      "GAMG-smoother_nonBlockingGaussSeidel" \
-      "GAMG-smoother_symGaussSeidel" \
-    )
 
 標準条件: PCG-preconditioner_DIC
 また，以下のソルバーもできるだけ計算する．
@@ -93,10 +68,7 @@ GAMG-smoother_GaussSeidel
 
 ベンチマークテストの繰り返し数を以下のように整数値で指定する．
 
-    MAX_NUMBER_OF_LOOP=1
-
-標準条件: 1
-ただし，計算機負荷にバラつきが大きい場合には，3以上繰り返す．
+標準条件: 5
 
 ### MAX_NUMBER_OF_QUEUE(バッチキューの最大値)
 
@@ -104,6 +76,8 @@ GAMG-smoother_GaussSeidel
 バッチジョブシステムを使用しない場合には無視される．
 
     MAX_NUMBER_OF_QUEUE=1
+
+標準条件: 1
 
 ### NumberOfBatchQueue(バッチキュー数を返す関数)
 
@@ -323,6 +297,7 @@ LESモデルの種別(Smagorinsky等)を指定する．また，deltaにはLES�
     {
       LESModel laminar;
       delta cubeRootVol;
+      calcInterval 1;
     }
 
 ## ケース単体での実行

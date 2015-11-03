@@ -4,7 +4,7 @@ commonHeader()
 {
     line="#Dir,file,mx,my,mz,deltaT,endTime"
     line="$line,method,nx,ny,nz"
-    line="$line,simulationType,LESModel,delta"
+    line="$line,simulationType,LESModel,delta,calcInterval"
     line="$line,solver,preconditioner"
     line="$line,Build,Date,Time,nProcs,nCells"
     echo $line
@@ -37,6 +37,7 @@ parseCaseSettings()
     simulationType=`grep 'simulationType ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
     LESModel=`grep 'LESModel ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
     delta=`grep 'delta ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
+    calcInterval=`grep 'calcInterval ' caseSettings | sed "s/.* \([^ ]*\);/\1/"`
     if [ -z "$LESModel" ];then
 	if [ "$simulationType" == "LESModel" ];then
 	    LESModel="Smagorinsky"
@@ -49,7 +50,7 @@ parseCaseSettings()
 
     line="$mx,$my,$mz,$deltaT,$endTime"
     line="$line,$method,$nx,$ny,$nz"
-    line="$line,$simulationType,$LESModel,$delta"
+    line="$line,$simulationType,$LESModel,$delta,$calcInterval"
     line="$line,$solver,$preconditioner"
     echo $line
 }

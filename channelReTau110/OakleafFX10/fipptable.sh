@@ -7,7 +7,7 @@ tablefile="fipptable.csv"
 outputfile=$PWD/$tablefile
 
 line="$(commonHeader)" 
-line="$line,Steps,ExecutionTimeFirstStep,ExecutionTimeNextToLastStep,ExecutionTimeLastStep"
+line="$line,Steps,ExectutionTime0(s),ExectutionTime1(s),ExectutionTime/Steps(s)"
 line="$line,Elapsed(s),User(s),System(s)"
 line="$line,MFLOPS,MFLOPS/PEAK(%),MIPS,MIPS/PEAK(%)"
 line="$line,Mem throughput_chip(MB/S),Mem throughput/PEAK(%),SIMD(%)"
@@ -17,17 +17,14 @@ echo $line > $outputfile
 for Dir in n_*/mpi_*/simulationType_*;do
     echo "Dir= $Dir"
     (cd $Dir
-	n=1
 	for log in log.*[0-9]
 	do
 	    echo "  log= $log"
-	    grep "^End" $log >& /dev/null 
-	    [ "$?" -ne 0 ] && continue
-	    line="$Dir,$log,$(parseCaseSettings),$(parseLog $log)"
+	    line="$Dir,$(parseCaseSettings),$(parseLog $log)"
 
-	    ExecutionTime=`awk 'BEGIN {n=0;t=0} \
-		/^ExecutionTime/ {told=t;t=$3;if (n==0) t0=t;n++} \
-		END {printf "%d,%g,%g,%g",n,t0,told,t}' \
+	    ExecutionTime=`awk 'BEGIN {n=0} \
+		/^ExecutionTime/ {t=$3;if (n==0) t0=t;n++} \
+		END {printf "%d,%g,%g,%g",n,t0,t,(t-t0)/(n-1)}' \
 		$log`
 	    line="$line,$ExecutionTime"
 
@@ -52,16 +49,9 @@ for Dir in n_*/mpi_*/simulationType_*;do
 		line="$line,$profile"
 	    fi
 
-	    cp $fippFile log.fipp.$$.${n}th
-
 	    echo $line >> $outputfile
-
-	    n=`expr $n + 1`
 	done
     )
 done
-
-tar jcf fipp-log-$$.tar.bz2 n_*/mpi_*/simulationType_*/log.fipp.$$.*th
-rm -f n_*/mpi_*/simulationType_*/log.fipp.$$.*th
 
 

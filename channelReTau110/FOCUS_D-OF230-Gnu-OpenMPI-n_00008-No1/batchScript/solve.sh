@@ -14,17 +14,16 @@ source /home1/share/openfoam/2.3.0/gnu/openmpi/OpenFOAM-2.3.0/etc/bashrc
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-env > log.env
-
 log=log.$SLURM_JOB_ID
 (
-if [ -x $VTUNE_PATH/amplxe-cl ];then
+    env
 
-    vtunedir=$log.vtune
-    mkdir $vtunedir
-    $VTUNE_PATH/amplxe-cl -q -r $vtunedir -c hotspots -- \
-	$MPI_PATH/mpirun -np $(getNumberOfProcessors)  $(getApplication) -parallel
-else
+    if [ -x $VTUNE_PATH/amplxe-cl ];then
+	vtunedir=$log.vtune
+	mkdir $vtunedir
+	$VTUNE_PATH/amplxe-cl -q -r $vtunedir -c hotspots -- \
+			      $MPI_PATH/mpirun -np $(getNumberOfProcessors)  $(getApplication) -parallel
+    else
     	$MPI_PATH/mpirun -np $(getNumberOfProcessors)  $(getApplication) -parallel
-fi
+    fi
 ) >& $log

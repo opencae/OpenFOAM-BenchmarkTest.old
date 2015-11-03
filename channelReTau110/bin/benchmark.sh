@@ -53,6 +53,7 @@ LESProperties
 {
   LESModel $LESModel;
   delta $delta;
+  calcInterval $calcInterval;
 }
 EOF
 }
@@ -77,6 +78,7 @@ smoother="DIC"
 simulationType="laminar"
 LESModel="laminar"
 delta="cubeRootVol"
+calcInterval="1"
 libs=\"\"
 
 templateDir=$PWD/../template
@@ -164,7 +166,9 @@ do
 			simulationType=${simulationTypes%%-*}
 			LESModels=${simulationTypes##*LESModel_}
 			LESModel=${LESModels%%-*}
-			delta=${simulationTypes##*delta_}
+			deltas=${simulationTypes##*delta_}
+			delta=${deltas%%-*}
+			calcInterval=${simulationTypes##*calcInterval_}
 			if [ "$LESModel" == "WALE" ];then
 			    libs="\"libincompressibleWALE.so\""
 			else
@@ -186,7 +190,7 @@ do
 			    (cd $dir3
 				echo "dir= $dir/$dir2/$dir3"
 
-				ndone=`ls log.*[0-9] | wc -l`
+				ndone=`ls log.*[0-9] 2> /dev/null | wc -l`
 				if [ "$ndone" -ge "$MAX_NUMBER_OF_LOOP" ];then
 				    echo "Allready run in $MAX_NUMBER_OF_LOOP time(s). Skip running" 
 				    continue

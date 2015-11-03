@@ -48,5 +48,6 @@ LESProperties
 {
   LESModel laminar;
   delta cubeRootVol;
+  calcInterval 1;
 }
 
