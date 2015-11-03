@@ -28,56 +28,63 @@ OpenFOAM-BenchmarkTest-channelReTau110は
 格子数倍率nは，格子数374400(nx=120,ny=65,nz=48)をベースにとした格子の倍数である．
 ベンチマークケースnArrayの要素にはnを0埋めの5桁の整数値，かつ文字列形式で記述する．
 
-標準条件: n=00008(格子数2995200=約3M)
+  標準条件: n=00008(格子数2995200=約3M)
 
 ### mpiArray(MPI並列数mpiのベンチマークケース)
 
 MPI並列数mpiのベンチマークケースmpiArrayの要素には，
 mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
 
-標準条件: 無し．
+  標準条件: 無し．
+
 ただし，並列化効率をみるために複数のMPI並列数で計算することを推奨．
 
 ### simulationTypesArray(乱流モデルのベンチマークケース)
 
 乱流モデルのベンチマークケースsimulationTypesArrayの要素には，
 以下の形式の文字列を羅列する．
-"(simulationTypesの値)-LESModel_(LESModelの値)-delta_(deltaの値)-calcInterval_(calcIntervalの値)"
 
-標準条件: laminar-LESModel_laminar-delta_cubeRootVol-calcInterval_1
+  "(simulationTypesの値)-LESModel_(LESModelの値)-delta_(deltaの値)-calcInterval_(calcIntervalの値)"
+
+  標準条件: laminar-LESModel_laminar-delta_cubeRootVol-calcInterval_1
+
 ただし，
-LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_100
+
+  LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_1
+  LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_100
+
 のケースも計算することを強く推奨．
 
 ### solversArray(圧力に対する線型ソルバのベンチマークケース)
 
 圧力に対する線型ソルバのベンチマークケースsolversArrayの要素には，
 以下の形式の文字列を羅列する．
-"PCG-preconditioner_(preconditionerの値)"
-"GAMG-smoother_(smootherの値)"
 
-標準条件: PCG-preconditioner_DIC
+  "PCG-preconditioner_(preconditionerの値)"
+  "GAMG-smoother_(smootherの値)"
+
+  標準条件: PCG-preconditioner_DIC
+
 また，以下のソルバーもできるだけ計算する．
-PCG-preconditioner_FDIC
-GAMG-smoother_FDIC
-GAMG-smoother_DIC
-GAMG-smoother_DICGaussSeidel
-GAMG-smoother_GaussSeidel  
+
+  PCG-preconditioner_FDIC
+  GAMG-smoother_FDIC
+  GAMG-smoother_DIC
+  GAMG-smoother_DICGaussSeidel
+  GAMG-smoother_GaussSeidel  
 
 ### MAX_NUMBER_OF_LOOP(ベンチマークテストの繰り返し数)
 
-ベンチマークテストの繰り返し数を以下のように整数値で指定する．
+ベンチマークテストの繰り返し数を整数値で指定する．
 
-標準条件: 5
+  標準条件: 5
 
 ### MAX_NUMBER_OF_QUEUE(バッチキューの最大値)
 
-ベンチマークテストの実行スクリプトで投入可能なバッチキューの最大値を以下のように指定する．
+ベンチマークテストの実行スクリプトで投入可能なバッチキューの最大値を指定する．
 バッチジョブシステムを使用しない場合には無視される．
 
-    MAX_NUMBER_OF_QUEUE=1
-
-標準条件: 1
+  標準条件: 1
 
 ### NumberOfBatchQueue(バッチキュー数を返す関数)
 
