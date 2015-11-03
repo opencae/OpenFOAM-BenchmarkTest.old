@@ -13,9 +13,9 @@ OpenFOAM-BenchmarkTest-channelReTau110は
     bin/         スクリプト
     src/         ソース
     template/    channelReTau110のケースディレクトリ
-    FOCUS/       FOCUSでの設定例
-    Oakleaf-FX/  Oakleaf-FXでの設定例
     NoBatch/     非バッチジョブシステムでの設定例
+
+その他のディレクトリはベンチマークのテスト結果
 
 ## 設定
 
