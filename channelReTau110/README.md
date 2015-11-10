@@ -15,7 +15,7 @@ OpenFOAM-BenchmarkTest-channelReTau110は
     template/    channelReTau110のケースディレクトリ
     NoBatch/     非バッチジョブシステムでの設定例
 
-その他のディレクトリはベンチマークのテスト結果
+その他のディレクトリはベンチマークのテスト結果である．
 
 ## 設定
 
@@ -28,7 +28,9 @@ OpenFOAM-BenchmarkTest-channelReTau110は
 格子数倍率nは，格子数374400(nx=120,ny=65,nz=48)をベースにとした格子の倍数である．
 ベンチマークケースnArrayの要素にはnを0埋めの5桁の整数値，かつ文字列形式で記述する．
 
-  標準条件: n=00008(格子数2995200=約3M)
+  標準条件: n=00008
+ 
+なお，上記の場合の格子数は2,995,200=約3Mである．
 
 ### mpiArray(MPI並列数mpiのベンチマークケース)
 
@@ -37,7 +39,7 @@ mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
 
   標準条件: 無し．
 
-ただし，並列化効率をみるために複数のMPI並列数で計算することを推奨．
+ただし，並列化効率をみるために複数のMPI並列数で計算することを推奨する．
 
 ### simulationTypesArray(乱流モデルのベンチマークケース)
 
@@ -46,14 +48,15 @@ mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
 
   "(simulationTypesの値)-LESModel_(LESModelの値)-delta_(deltaの値)-calcInterval_(calcIntervalの値)"
 
-  標準条件: laminar-LESModel_laminar-delta_cubeRootVol-calcInterval_1
+  標準条件:
+  laminar-LESModel_laminar-delta_cubeRootVol-calcInterval_1
 
 ただし，
 
   LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_1
   LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_100
 
-のケースも計算することを強く推奨．
+のケースも計算することを推奨する．
 
 ### solversArray(圧力に対する線型ソルバのベンチマークケース)
 
@@ -63,15 +66,18 @@ mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
   "PCG-preconditioner_(preconditionerの値)"
   "GAMG-smoother_(smootherの値)"
 
-  標準条件: PCG-preconditioner_DIC
+  標準条件:
+  PCG-preconditioner_DIC
+  GAMG-smoother_DIC
 
-また，以下のソルバーもできるだけ計算する．
+ただし，
 
   PCG-preconditioner_FDIC
   GAMG-smoother_FDIC
-  GAMG-smoother_DIC
   GAMG-smoother_DICGaussSeidel
   GAMG-smoother_GaussSeidel  
+
+のソルバーも計算することを推奨する．
 
 ### MAX_NUMBER_OF_LOOP(ベンチマークテストの繰り返し数)
 
