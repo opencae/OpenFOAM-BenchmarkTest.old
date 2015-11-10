@@ -15,7 +15,9 @@ line="$line,p0InitRes,p0FinalRes,p0NoIter"
 line="$line,p1InitRes,p1FinalRes,p1NoIter"
 line="$line,contErrSumLocal0,contErrGlobal0,contErrCum0"
 line="$line,contErrSumLocal1,contErrGlobal1,contErrCum1"
-line="$line,Steps,ExecutionTimeFirstStep,ExecutionTimeNextToLastStep,ExecutionTimeLastStep"
+line="$line,Steps"
+line="$line,ExecutionTimeFirstStep,ExecutionTimeNextToLastStep,ExecutionTimeLastStep"
+line="$line,ClockTimeFirstStep,ClockTimeNextToLastStep,ClockTimeLastStep"
 echo $line > $outputfile
 
 for Dir in n_*/mpi_*/simulationType_*
@@ -40,9 +42,9 @@ do
 	    err1=`grep "^time step continuity errors" $log | tail -n 1 | cut -d ' ' -f 9,12,15  | tr -d ' '`
 	    line="$line,$Co,$Ux,$Uy,$Uz,$p0,$p1,$err0,$err1"
 
-	    ExecutionTime=`awk 'BEGIN {n=0;t=0} \
-		/^ExecutionTime/ {told=t;t=$3;if (n==0) t0=t;n++} \
-		END {printf "%d,%g,%g,%g",n,t0,told,t}' \
+	    ExecutionTime=`awk 'BEGIN {n=0;t=0;c=0} \
+		/^ExecutionTime/ {told=t;t=$3;cold=c;c=$7;if (n==0) {t0=t;c0=c};n++} \
+		END {printf "%d,%g,%g,%g,%g,%g,%g",n,t0,told,t,c0,cold,c}' \
 		$log`
 	    line="$line,$ExecutionTime"
 

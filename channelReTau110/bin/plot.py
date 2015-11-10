@@ -39,7 +39,7 @@ solverArray=np.unique(data['solver'])
 nProcsArray=np.unique(data['nProcs'])
 
 pylab.subplots_adjust(top=0.83,bottom=0.5)
-            
+
 for nCells in nCellsArray:
     if options.standard and nCells != 2995200:
         continue
@@ -64,22 +64,34 @@ for nCells in nCellsArray:
                     solver=data['solver'][idx]
                     preconditioner=data['preconditioner'][idx]
                     solvers=np.core.defchararray.add(np.core.defchararray.add(solver, "-"),preconditioner)
-        
-                    y=(data['ExecutionTimeLastStep'][idx]-data['ExecutionTimeFirstStep'][idx])/(data['Steps'][idx]-1)
+
+                    executionTimePerStep=\
+                        (data['ExecutionTimeNextToLastStep'][idx]-data['ExecutionTimeFirstStep'][idx])\
+                        /(data['Steps'][idx]-2.0)
+
+                    clockTimePerStep=\
+                        (data['ClockTimeNextToLastStep'][idx]-data['ClockTimeFirstStep'][idx])\
+                        /(data['Steps'][idx]-2.0)
 
                     sn = np.unique(solvers)
                     index0=[]
                     for snI in sn:
                         index0.append(np.where(solvers==snI)[0][0])
                     index1=index0[1:]
-                    index1=np.append(index1,len(y))
+                    index1=np.append(index1,len(executionTimePerStep))
                     executionTimeAve=np.zeros(len(sn))
                     executionTimeSTD=np.zeros(len(sn))
+                    clockTimeAve=np.zeros(len(sn))
+                    clockTimeSTD=np.zeros(len(sn))
                     for i in range(len(sn)):
-                        executionTime=y[index0[i]:index1[i]]
+                        executionTime=executionTimePerStep[index0[i]:index1[i]]
                         executionTimeAve[i]=np.average(executionTime)
                         executionTimeSTD[i]=np.std(executionTime)
-        
+
+                        clockTime=clockTimePerStep[index0[i]:index1[i]]
+                        clockTimeAve[i]=np.average(clockTime)
+                        clockTimeSTD[i]=np.std(clockTime)
+
                     LESModels=LESModel
                     if LESModel != "laminar":
                         LESModels+=",delta="+delta
@@ -88,28 +100,29 @@ for nCells in nCellsArray:
 
                     base=str(nCells)+"cells-"+LESModels+"-"+str(nProcs)+"MPI-time"
                     print base
-        
+
                     x=np.arange(len(sn))
-        
+
                     offset=(x[len(x)-1]-x[0])*0.05
                     xmin=x[0]-offset
                     xmax=x[len(x)-1]+offset
 
                     title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+str(nProcs)+"MPI"
                     plt.title(title)
-                    plt.plot(x,executionTimeAve, label="Execution time per time step [s]", linewidth=1)
-                    plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, fmt='.', linewidth=2)
+                    plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, label="Execution time per time step [s]")
+                    plt.errorbar(x, clockTimeAve, yerr=clockTimeSTD, label="clock time per time step [s]")
                     plt.xlabel('Matrix solver for pressure equation')
-                    plt.ylabel('Execution time per time step [s]')
+                    plt.ylabel('Execution or clock time per time step [s]')
                     plt.xticks(x,sn, rotation=-90)
                     ymin, ymax = plt.ylim()
                     ymin=0
                     plt.xlim(xmin, xmax)
                     plt.ylim(ymin,ymax*1.1)
                     plt.grid()
+                    plt.legend(loc='best', fontsize=12)
                     pp.savefig()
                     plt.clf()
-        
+
 if len(nProcsArray)==1:
     pp.close()
     exit(0)
@@ -145,41 +158,63 @@ for nCells in nCellsArray:
                             & (data['preconditioner']==pre)
                             )
                         x=data['nProcs'][idx]
-                        y=(data['ExecutionTimeLastStep'][idx]-data['ExecutionTimeFirstStep'][idx])/(data['Steps'][idx]-1)
-        
+
+                        executionTimePerStep=\
+                            (data['ExecutionTimeNextToLastStep'][idx]-data['ExecutionTimeFirstStep'][idx])\
+                            /(data['Steps'][idx]-2.0)
+
+                        clockTimePerStep=\
+                            (data['ClockTimeNextToLastStep'][idx]-data['ClockTimeFirstStep'][idx])\
+                            /(data['Steps'][idx]-2.0)
+
                         mpi = np.unique(x)
                         index0=[]
                         for mpiI in mpi:
                             index0.append(np.where(x==mpiI)[0][0])
                         index1=index0[1:]
-                        index1=np.append(index1,len(y))
+                        index1=np.append(index1,len(executionTimePerStep))
                         executionTimeAve=np.zeros(len(mpi))
                         executionTimeSTD=np.zeros(len(mpi))
-                        srSTD=np.zeros(len(mpi))
-                        peSTD=np.zeros(len(mpi))
+                        clockTimeAve=np.zeros(len(mpi))
+                        clockTimeSTD=np.zeros(len(mpi))
+                        executionTimeSRSTD=np.zeros(len(mpi))
+                        executionTimePESTD=np.zeros(len(mpi))
+                        clockTimeSRSTD=np.zeros(len(mpi))
+                        clockTimePESTD=np.zeros(len(mpi))
                         for i in range(len(mpi)):
-                            executionTime=y[index0[i]:index1[i]]
+                            executionTime=executionTimePerStep[index0[i]:index1[i]]
                             executionTimeAve[i]=np.average(executionTime)
                             executionTimeSTD[i]=np.std(executionTime)
-        
-                            sr=executionTimeAve[0]/executionTime
-                            srSTD[i]=np.std(sr)
-        
-                            pe=sr/(mpi[i]/mpi[0])*100.0
-                            peSTD[i]=np.std(pe)
-        
-                        srAve=executionTimeAve[0]/executionTimeAve
-                        peAve=srAve/(mpi/mpi[0])*100
+
+                            clockTime=clockTimePerStep[index0[i]:index1[i]]
+                            clockTimeAve[i]=np.average(clockTime)
+                            clockTimeSTD[i]=np.std(clockTime)
+
+                            executionTimeSR=executionTimeAve[0]/executionTime
+                            executionTimeSRSTD[i]=np.std(executionTimeSR)
+                            executionTimePE=executionTimeSR/(mpi[i]/mpi[0])*100.0
+                            executionTimePESTD[i]=np.std(executionTimePE)
+
+                            clockTimeSR=clockTimeAve[0]/clockTime
+                            clockTimeSRSTD[i]=np.std(clockTimeSR)
+                            clockTimePE=clockTimeSR/(mpi[i]/mpi[0])*100.0
+                            clockTimePESTD[i]=np.std(clockTimePE)
+
+                        executionTimeSRAve=executionTimeAve[0]/executionTimeAve
+                        executionTimePEAve=executionTimeSRAve/(mpi/mpi[0])*100
+
+                        clockTimeSRAve=clockTimeAve[0]/clockTimeAve
+                        clockTimePEAve=clockTimeSRAve/(mpi/mpi[0])*100
 
                         LESModels=LESModel
                         if LESModel != "laminar":
                             LESModels+=",delta="+delta
                             if delta == "vanDriest":
                                 LESModels+=",calcInterval="+str(calcInterval)
-        
+
                         base=str(nCells)+"cells-"+LESModels+"-"+solver+"-"+pre
                         print base
-        
+
                         offset=(mpi[len(mpi)-1]-mpi[0])*0.05
                         xmin=mpi[0]-offset
                         xmax=mpi[len(mpi)-1]+offset
@@ -189,13 +224,14 @@ for nCells in nCellsArray:
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
                         plt.grid()
-                        plt.plot(mpi,executionTimeAve, label="Execution time per time step [s]", linewidth=1)
-                        plt.errorbar(mpi, executionTimeAve, yerr=executionTimeSTD, fmt='.', linewidth=2)
+                        plt.errorbar(mpi, executionTimeAve, yerr=executionTimeSTD, label="Execution time per time step [s]")
+                        plt.errorbar(mpi, clockTimeAve, yerr=clockTimeSTD, label="Clock time per time step [s]")
                         plt.ylabel('Execution time per time step [s]')
                         ymin, ymax = plt.ylim()
                         ymin=0
                         plt.xlim(xmin, xmax)
                         plt.ylim(ymin,ymax*1.1)
+                        plt.legend(loc='best', fontsize=12)
                         pp.savefig()
                         plt.clf()
 
@@ -203,31 +239,33 @@ for nCells in nCellsArray:
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
                         plt.grid()
-                        plt.plot(mpi,srAve, label="Speedup ratio")    
-                        plt.errorbar(mpi, srAve, srSTD, fmt='.')
+                        plt.errorbar(mpi, executionTimeSRAve, executionTimeSRSTD, label="Execution time base")
+                        plt.errorbar(mpi, clockTimeSRAve, clockTimeSRSTD, label="Clock Time base")
                         plt.plot([xmin, xmax], [xmin/mpi[0], xmax/mpi[0]], 'k-', label="Ideal")
                         plt.ylabel('Speedup ratio [-]')
                         ymin, ymax = plt.ylim()
                         ymin=0
                         plt.xlim(xmin, xmax)
                         plt.ylim(ymin,ymax*1.1)
-                        plt.legend(loc='upper left')
+                        plt.legend(loc='best', fontsize=12)
                         pp.savefig()
                         plt.clf()
 
-                        plt.title(title)        
+                        plt.title(title)
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
                         plt.grid()
-                        plt.plot(mpi,peAve, label="Parallel efficiency")    
-                        plt.errorbar(mpi, peAve, peSTD, fmt='.')
+                        plt.errorbar(mpi, executionTimePEAve, executionTimePESTD, label="Execution time base")
+                        plt.errorbar(mpi, clockTimePEAve, clockTimePESTD, label="Clock time base")
                         plt.plot([xmin, xmax], [100, 100], 'k-', label="Ideal")
                         plt.ylabel('Parallel efficiency [%]')
                         xmin, xmax = plt.xlim()
                         ymin, ymax = plt.ylim()
                         ymin=0
                         plt.ylim(ymin,ymax*1.1)
+                        plt.legend(loc='best', fontsize=12)
                         pp.savefig()
                         plt.clf()
-        
+
 pp.close()
+
