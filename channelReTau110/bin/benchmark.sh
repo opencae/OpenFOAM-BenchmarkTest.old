@@ -98,7 +98,7 @@ do
 	mz=`echo $n | awk '{printf("%d", 48*$1^(1./3.) + 0.5)}'`
 
 	deltaT=`echo $n | awk '{printf("%f", 0.004/($1^(1./3.)))}'`
-	endTime=`echo $deltaT | awk '{printf("%f", $1*11)}'`
+	endTime=`echo $deltaT | awk '{printf("%f", $1*52)}'`
 
 	dir=n_$n
 
