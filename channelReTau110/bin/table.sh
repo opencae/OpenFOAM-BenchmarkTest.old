@@ -62,13 +62,12 @@ do
                    { print "\"\"" }\
                  else { print $0} };\
                if ($1=="End") {n=0}\
-            }' $log > log.pimpleFoam.$$.${n}th
+            }' $log > log.pimpleFoam.${n}th
 
 	    n=`expr $n + 1`
 	done
     )
 done
 
-tar jcf caseSettings-log-$$.tar.bz2 n_*/mpi_*/simulationType_*/{0,constant/*Properties,system,caseSettings,log.pimpleFoam.$$.*th}
-rm -f n_*/mpi_*/simulationType_*/log.pimpleFoam.$$.*th
-
+tar jcf caseSettings-log.tar.bz2 n_*/mpi_*/simulationType_*/{0,constant/*Properties,system,caseSettings,log.pimpleFoam.*th}
+rm -f n_*/mpi_*/simulationType_*/log.pimpleFoam.*th

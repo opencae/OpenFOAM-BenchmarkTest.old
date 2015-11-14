@@ -8,24 +8,11 @@ import numpy as np
 import pylab
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from optparse import OptionParser
+import csv
 
-parser = OptionParser()
+data=np.genfromtxt("table.csv", names=True, delimiter=',', dtype=None)
 
-parser.add_option("-s", "--standard",
-                  action="store_true", dest="standard",
-                  help="plot cases under standard conditions")
-
-(options, args) = parser.parse_args()
-
-dataorig=np.genfromtxt("table.csv", names=True, delimiter=',', dtype=None)
-
-data=np.sort(dataorig)
-
-if options.standard:
-    plotfile='plot-standard.pdf'
-else:
-    plotfile='plot.pdf'
+plotfile='plot.pdf'
 
 pp = PdfPages(plotfile)
 
@@ -37,15 +24,12 @@ nCellsArray=np.unique(data['nCells'])
 LESModelArray=np.unique(data['LESModel'])
 solverArray=np.unique(data['solver'])
 nProcsArray=np.unique(data['nProcs'])
+values = []
 
 pylab.subplots_adjust(top=0.83,bottom=0.5)
 
 for nCells in nCellsArray:
-    if options.standard and nCells != 2995200:
-        continue
     for LESModel in LESModelArray:
-        if options.standard and LESModel != "laminar":
-            continue
         idxLESModel=np.where(data['LESModel']==LESModel)
         deltaArray=np.unique(data['delta'][idxLESModel])
         for delta in deltaArray:
@@ -92,6 +76,9 @@ for nCells in nCellsArray:
                         clockTimeAve[i]=np.average(clockTime)
                         clockTimeSTD[i]=np.std(clockTime)
 
+                        values.append((0,nProcs,sn[i],executionTimeAve[i],clockTimeAve[i]\
+                                           ,executionTimeAve[i],clockTimeAve[i]))
+
                     LESModels=LESModel
                     if LESModel != "laminar":
                         LESModels+=",delta="+delta
@@ -109,10 +96,9 @@ for nCells in nCellsArray:
 
                     title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+str(nProcs)+"MPI"
                     plt.title(title)
-                    plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, label="Execution time per time step [s]")
-                    plt.errorbar(x, clockTimeAve, yerr=clockTimeSTD, label="clock time per time step [s]")
+                    plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, color='b', ecolor='b'\
+                                     , label="Execution time per time step [s]")
                     plt.xlabel('Matrix solver for pressure equation')
-                    plt.ylabel('Execution or clock time per time step [s]')
                     plt.xticks(x,sn, rotation=-90)
                     ymin, ymax = plt.ylim()
                     ymin=0
@@ -120,8 +106,65 @@ for nCells in nCellsArray:
                     plt.ylim(ymin,ymax*1.1)
                     plt.grid()
                     plt.legend(loc='best', fontsize=12)
+                    plt.ylabel('Execution time per time step [s]')
                     pp.savefig()
                     plt.clf()
+
+                    title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+str(nProcs)+"MPI"
+                    plt.title(title)
+                    plt.errorbar(x, clockTimeAve, yerr=clockTimeSTD, color='r', ecolor='r'\
+                                     , label="Clock time per time step [s]")
+                    plt.xlabel('Matrix solver for pressure equation')
+                    plt.xticks(x,sn, rotation=-90)
+                    ymin, ymax = plt.ylim()
+                    ymin=0
+                    plt.xlim(xmin, xmax)
+                    plt.ylim(ymin,ymax*1.1)
+                    plt.grid()
+                    plt.legend(loc='best', fontsize=12)
+                    plt.ylabel('Clock time per time step [s]')
+                    pp.savefig()
+                    plt.clf()
+
+dtype =\
+ [('#No', int), ('nProcs', int), ('solver', 'S100')\
+  , ('executionTimePerTimeStepAve', float), ('clockTimePerTimeStepAve', float)\
+  , ('executionTimePerTimeStepAve/No1', float), ('clockTimePerTimeStepAve/No1', float)\
+      ]
+timeAve = np.array(values, dtype=dtype)
+
+header=["#No","nProcs","solver"\
+            ,"executionTimePerTimeStepAve[s]","clockTimePerTimeStepAve[s]"\
+            ,"executionTimePerTimeStepAve/No1","clockTimePerTimeStepAve/No1"]
+ETPTAsort=np.sort(timeAve, order='executionTimePerTimeStepAve')
+no=1
+for ETPTAsortI in ETPTAsort:
+    ETPTAsortI['#No']=no
+    ETPTAsortI['executionTimePerTimeStepAve/No1']\
+        /=ETPTAsort['executionTimePerTimeStepAve'][0]
+    ETPTAsortI['clockTimePerTimeStepAve/No1']\
+        /=ETPTAsort['clockTimePerTimeStepAve'][0]
+    no+=1
+f = open('executionTimeAve.csv', 'w')
+writer = csv.writer(f, lineterminator='\n')
+writer.writerow(header)
+writer.writerows(ETPTAsort)
+f.close()
+
+CTPTSAsort=np.sort(timeAve, order='clockTimePerTimeStepAve')
+no=1
+for CTPTSAsortI in CTPTSAsort:
+    CTPTSAsortI['#No']=no
+    CTPTSAsortI['executionTimePerTimeStepAve/No1']\
+        /=CTPTSAsort['executionTimePerTimeStepAve'][0]
+    CTPTSAsortI['clockTimePerTimeStepAve/No1']\
+        /=CTPTSAsort['clockTimePerTimeStepAve'][0]
+    no+=1
+f = open('clockTimeAve.csv', 'w')
+writer = csv.writer(f, lineterminator='\n')
+writer.writerow(header)
+writer.writerows(CTPTSAsort)
+f.close()
 
 if len(nProcsArray)==1:
     pp.close()
@@ -130,11 +173,7 @@ if len(nProcsArray)==1:
 pylab.subplots_adjust(top=0.83,bottom=0.1)
 
 for nCells in nCellsArray:
-    if options.standard and nCells != 2995200:
-        continue
     for LESModel in LESModelArray:
-        if options.standard and LESModel != "laminar":
-            continue
         idxLESModel=np.where(data['LESModel']==LESModel)
         deltaArray=np.unique(data['delta'][idxLESModel])
         for delta in deltaArray:
@@ -142,13 +181,9 @@ for nCells in nCellsArray:
             calcIntervalArray=np.unique(data['calcInterval'][idxDelta])
             for calcInterval in calcIntervalArray:
                 for solver in solverArray:
-                    if options.standard and solver != "PCG":
-                        continue
                     idxSolver=np.where(data['solver']==solver)
                     preArray=np.unique(data['preconditioner'][idxSolver])
                     for pre in preArray:
-                        if options.standard and pre != "DIC":
-                            continue
                         idx=np.where(
                             (data['nCells']==nCells)
                             & (data['LESModel']==LESModel)
@@ -224,9 +259,25 @@ for nCells in nCellsArray:
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
                         plt.grid()
-                        plt.errorbar(mpi, executionTimeAve, yerr=executionTimeSTD, label="Execution time per time step [s]")
-                        plt.errorbar(mpi, clockTimeAve, yerr=clockTimeSTD, label="Clock time per time step [s]")
+                        plt.errorbar(mpi, executionTimeAve, yerr=executionTimeSTD, color='b', ecolor='b'\
+                                         , label="Execution time per time step [s]")
                         plt.ylabel('Execution time per time step [s]')
+                        ymin, ymax = plt.ylim()
+                        ymin=0
+                        plt.xlim(xmin, xmax)
+                        plt.ylim(ymin,ymax*1.1)
+                        plt.legend(loc='best', fontsize=12)
+                        pp.savefig()
+                        plt.clf()
+
+                        title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+solver+"-"+pre
+                        plt.title(title)
+                        plt.xlabel('Number of MPI processes')
+                        plt.xticks(mpi)
+                        plt.grid()
+                        plt.errorbar(mpi, clockTimeAve, yerr=clockTimeSTD, color='r', ecolor='r'\
+                                         , label="Clock time per time step [s]")
+                        plt.ylabel('Clock time per time step [s]')
                         ymin, ymax = plt.ylim()
                         ymin=0
                         plt.xlim(xmin, xmax)
@@ -239,8 +290,23 @@ for nCells in nCellsArray:
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
                         plt.grid()
-                        plt.errorbar(mpi, executionTimeSRAve, executionTimeSRSTD, label="Execution time base")
-                        plt.errorbar(mpi, clockTimeSRAve, clockTimeSRSTD, label="Clock Time base")
+                        plt.errorbar(mpi, executionTimeSRAve, executionTimeSRSTD, color='b', ecolor='b'\
+                                         , label="Execution time base")
+                        plt.plot([xmin, xmax], [xmin/mpi[0], xmax/mpi[0]], 'k-', label="Ideal")
+                        plt.ylabel('Speedup ratio [-]')
+                        ymin, ymax = plt.ylim()
+                        ymin=0
+                        plt.xlim(xmin, xmax)
+                        plt.ylim(ymin,ymax*1.1)
+                        plt.legend(loc='best', fontsize=12)
+                        pp.savefig()
+                        plt.clf()
+                        plt.title(title)
+                        plt.xlabel('Number of MPI processes')
+                        plt.xticks(mpi)
+                        plt.grid()
+                        plt.errorbar(mpi, clockTimeSRAve, clockTimeSRSTD, color='r', ecolor='r'\
+                                         , label="Clock Time base")
                         plt.plot([xmin, xmax], [xmin/mpi[0], xmax/mpi[0]], 'k-', label="Ideal")
                         plt.ylabel('Speedup ratio [-]')
                         ymin, ymax = plt.ylim()
@@ -255,8 +321,24 @@ for nCells in nCellsArray:
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
                         plt.grid()
-                        plt.errorbar(mpi, executionTimePEAve, executionTimePESTD, label="Execution time base")
-                        plt.errorbar(mpi, clockTimePEAve, clockTimePESTD, label="Clock time base")
+                        plt.errorbar(mpi, executionTimePEAve, executionTimePESTD, color='b', ecolor='b'\
+                                         , label="Execution time base")
+                        plt.plot([xmin, xmax], [100, 100], 'k-', label="Ideal")
+                        plt.ylabel('Parallel efficiency [%]')
+                        xmin, xmax = plt.xlim()
+                        ymin, ymax = plt.ylim()
+                        ymin=0
+                        plt.ylim(ymin,ymax*1.1)
+                        plt.legend(loc='best', fontsize=12)
+                        pp.savefig()
+                        plt.clf()
+
+                        plt.title(title)
+                        plt.xlabel('Number of MPI processes')
+                        plt.xticks(mpi)
+                        plt.grid()
+                        plt.errorbar(mpi, clockTimePEAve, clockTimePESTD, color='r', ecolor='r'\
+                                         , label="Clock time base")
                         plt.plot([xmin, xmax], [100, 100], 'k-', label="Ideal")
                         plt.ylabel('Parallel efficiency [%]')
                         xmin, xmax = plt.xlim()
@@ -268,4 +350,3 @@ for nCells in nCellsArray:
                         plt.clf()
 
 pp.close()
-
