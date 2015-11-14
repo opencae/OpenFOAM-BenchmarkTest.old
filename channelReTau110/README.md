@@ -166,7 +166,7 @@ channelReTau110のディレクトリの下に，ベンチマーク実行用の�
 
 ベンチマーク結果を集計したファイルtable.csv，および
 ソルバのログと設定ファイル(caseSettings)のアーカイブファイル
-caseSettings-log-ID.tar.bz2 が作成される．
+caseSettings-log.tar.bz2 が作成される．
 
 なお，アーカイブファイルに収録されるソルバのログは，
 先頭がBuildから始まるヘッダーから，先頭がEndのまでの部分を取り出し，
@@ -190,7 +190,7 @@ Slaveの情報を消している．
     benchmark.conf     ベンチマークケースのパラメータや関数の設定
     table.csv          ベンチマーク結果を集計したファイル
     batchScript/*.sh   バッチジョブスクリプト(バッチジョブシステムの場合)
-    caseSettings-log-ID.tar.bz2 ソルバのログと設定のアーカイブ
+    caseSettings-log.tar.bz2 ソルバのログと設定のアーカイブ
 
 ### README.md
 
