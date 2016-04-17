@@ -37,3 +37,5 @@
 * コンパイラの最適化オプション: -O3
 * 使用したMPIライブラリ: openmpi-1.6.5
 * その他特記事項:
+  * mpirunオプション: -bind-to-core -mca btl openib,sm,self
+  * intel VTuneによるプロファイル解析は行なっていない

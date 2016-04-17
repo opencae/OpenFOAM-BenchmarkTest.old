@@ -9,6 +9,9 @@ import pylab
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import csv
+from scipy import stats
+
+nMaxSample=5
 
 data=np.genfromtxt("table.csv", names=True, delimiter=',', dtype=None)
 
@@ -66,13 +69,16 @@ for nCells in nCellsArray:
                     executionTimeAve=np.zeros(len(sn))
                     executionTimeSTD=np.zeros(len(sn))
                     clockTimeAve=np.zeros(len(sn))
+                    clockTimeM=np.zeros(len(sn))
                     clockTimeSTD=np.zeros(len(sn))
                     for i in range(len(sn)):
                         executionTime=executionTimePerStep[index0[i]:index1[i]]
+                        executionTime=np.sort(executionTime)[0:min(len(executionTime),nMaxSample)]
                         executionTimeAve[i]=np.average(executionTime)
                         executionTimeSTD[i]=np.std(executionTime)
 
                         clockTime=clockTimePerStep[index0[i]:index1[i]]
+                        clockTime=np.sort(clockTime)[0:min(len(clockTime),nMaxSample)]
                         clockTimeAve[i]=np.average(clockTime)
                         clockTimeSTD[i]=np.std(clockTime)
 
@@ -94,21 +100,21 @@ for nCells in nCellsArray:
                     xmin=x[0]-offset
                     xmax=x[len(x)-1]+offset
 
-                    title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+str(nProcs)+"MPI"
-                    plt.title(title)
-                    plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, color='b', ecolor='b'\
-                                     , label="Execution time per time step [s]")
-                    plt.xlabel('Matrix solver for pressure equation')
-                    plt.xticks(x,sn, rotation=-90)
-                    ymin, ymax = plt.ylim()
-                    ymin=0
-                    plt.xlim(xmin, xmax)
-                    plt.ylim(ymin,ymax*1.1)
-                    plt.grid()
-                    plt.legend(loc='best', fontsize=12)
-                    plt.ylabel('Execution time per time step [s]')
-                    pp.savefig()
-                    plt.clf()
+#                    title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+str(nProcs)+"MPI"
+#                    plt.title(title)
+#                    plt.errorbar(x, executionTimeAve, yerr=executionTimeSTD, color='b', ecolor='b'\
+#                                     , label="Execution time per time step [s]")
+#                    plt.xlabel('Matrix solver for pressure equation')
+#                    plt.xticks(x,sn, rotation=-90)
+#                    ymin, ymax = plt.ylim()
+#                    ymin=0
+#                    plt.xlim(xmin, xmax)
+#                    plt.ylim(ymin,ymax*1.1)
+#                    plt.grid()
+#                    plt.legend(loc='best', fontsize=12)
+#                    plt.ylabel('Execution time per time step [s]')
+#                    pp.savefig()
+#                    plt.clf()
 
                     title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+str(nProcs)+"MPI"
                     plt.title(title)
@@ -212,18 +218,23 @@ for nCells in nCellsArray:
                         executionTimeSTD=np.zeros(len(mpi))
                         clockTimeAve=np.zeros(len(mpi))
                         clockTimeSTD=np.zeros(len(mpi))
+                        nTimeStepPerDayAve=np.zeros(len(mpi))
                         executionTimeSRSTD=np.zeros(len(mpi))
                         executionTimePESTD=np.zeros(len(mpi))
                         clockTimeSRSTD=np.zeros(len(mpi))
                         clockTimePESTD=np.zeros(len(mpi))
                         for i in range(len(mpi)):
                             executionTime=executionTimePerStep[index0[i]:index1[i]]
+                            executionTime=np.sort(executionTime)[0:min(len(executionTime),nMaxSample)]
                             executionTimeAve[i]=np.average(executionTime)
                             executionTimeSTD[i]=np.std(executionTime)
 
                             clockTime=clockTimePerStep[index0[i]:index1[i]]
+                            clockTime=np.sort(clockTime)[0:min(len(clockTime),nMaxSample)]
                             clockTimeAve[i]=np.average(clockTime)
                             clockTimeSTD[i]=np.std(clockTime)
+
+                            nTimeStepPerDayAve[i]=3600.0/clockTimeAve[i]
 
                             executionTimeSR=executionTimeAve[0]/executionTime
                             executionTimeSRSTD[i]=np.std(executionTimeSR)
@@ -254,21 +265,21 @@ for nCells in nCellsArray:
                         xmin=mpi[0]-offset
                         xmax=mpi[len(mpi)-1]+offset
 
-                        title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+solver+"-"+pre
-                        plt.title(title)
-                        plt.xlabel('Number of MPI processes')
-                        plt.xticks(mpi)
-                        plt.grid()
-                        plt.errorbar(mpi, executionTimeAve, yerr=executionTimeSTD, color='b', ecolor='b'\
-                                         , label="Execution time per time step [s]")
-                        plt.ylabel('Execution time per time step [s]')
-                        ymin, ymax = plt.ylim()
-                        ymin=0
-                        plt.xlim(xmin, xmax)
-                        plt.ylim(ymin,ymax*1.1)
-                        plt.legend(loc='best', fontsize=12)
-                        pp.savefig()
-                        plt.clf()
+#                        title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+solver+"-"+pre
+#                        plt.title(title)
+#                        plt.xlabel('Number of MPI processes')
+#                        plt.xticks(mpi)
+#                        plt.grid()
+#                        plt.errorbar(mpi, executionTimeAve, yerr=executionTimeSTD, color='b', ecolor='b'\
+#                                         , label="Execution time per time step [s]")
+#                        plt.ylabel('Execution time per time step [s]')
+#                        ymin, ymax = plt.ylim()
+#                        ymin=0
+#                        plt.xlim(xmin, xmax)
+#                        plt.ylim(ymin,ymax*1.1)
+#                        plt.legend(loc='best', fontsize=12)
+#                        pp.savefig()
+#                        plt.clf()
 
                         title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+solver+"-"+pre
                         plt.title(title)
@@ -286,14 +297,16 @@ for nCells in nCellsArray:
                         pp.savefig()
                         plt.clf()
 
+                        title=basename+"\n"+str(nCells/1e+6)+"M cells\n"+LESModels+"\n"+solver+"-"+pre
                         plt.title(title)
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
                         plt.grid()
-                        plt.errorbar(mpi, executionTimeSRAve, executionTimeSRSTD, color='b', ecolor='b'\
-                                         , label="Execution time base")
-                        plt.plot([xmin, xmax], [xmin/mpi[0], xmax/mpi[0]], 'k-', label="Ideal")
-                        plt.ylabel('Speedup ratio [-]')
+                        plt.plot(mpi, nTimeStepPerDayAve, 'r-', label="Number of time steps per hour")
+                        plt.plot([xmin, xmax]\
+                                     ,[xmin*(nTimeStepPerDayAve[0]/mpi[0]), xmax*(nTimeStepPerDayAve[0]/mpi[0])]\
+                                           ,'k-', label="Ideal")
+                        plt.ylabel('Number of time steps per hour')
                         ymin, ymax = plt.ylim()
                         ymin=0
                         plt.xlim(xmin, xmax)
@@ -301,6 +314,23 @@ for nCells in nCellsArray:
                         plt.legend(loc='best', fontsize=12)
                         pp.savefig()
                         plt.clf()
+
+#                        plt.title(title)
+#                        plt.xlabel('Number of MPI processes')
+#                        plt.xticks(mpi)
+#                        plt.grid()
+#                        plt.errorbar(mpi, executionTimeSRAve, executionTimeSRSTD, color='b', ecolor='b'\
+#                                         , label="Execution time base")
+#                        plt.plot([xmin, xmax], [xmin/mpi[0], xmax/mpi[0]], 'k-', label="Ideal")
+#                        plt.ylabel('Speedup ratio [-]')
+#                        ymin, ymax = plt.ylim()
+#                        ymin=0
+#                        plt.xlim(xmin, xmax)
+#                        plt.ylim(ymin,ymax*1.1)
+#                        plt.legend(loc='best', fontsize=12)
+#                        pp.savefig()
+#                        plt.clf()
+
                         plt.title(title)
                         plt.xlabel('Number of MPI processes')
                         plt.xticks(mpi)
@@ -317,21 +347,21 @@ for nCells in nCellsArray:
                         pp.savefig()
                         plt.clf()
 
-                        plt.title(title)
-                        plt.xlabel('Number of MPI processes')
-                        plt.xticks(mpi)
-                        plt.grid()
-                        plt.errorbar(mpi, executionTimePEAve, executionTimePESTD, color='b', ecolor='b'\
-                                         , label="Execution time base")
-                        plt.plot([xmin, xmax], [100, 100], 'k-', label="Ideal")
-                        plt.ylabel('Parallel efficiency [%]')
-                        xmin, xmax = plt.xlim()
-                        ymin, ymax = plt.ylim()
-                        ymin=0
-                        plt.ylim(ymin,ymax*1.1)
-                        plt.legend(loc='best', fontsize=12)
-                        pp.savefig()
-                        plt.clf()
+#                        plt.title(title)
+#                        plt.xlabel('Number of MPI processes')
+#                        plt.xticks(mpi)
+#                        plt.grid()
+#                        plt.errorbar(mpi, executionTimePEAve, executionTimePESTD, color='b', ecolor='b'\
+#                                         , label="Execution time base")
+#                        plt.plot([xmin, xmax], [100, 100], 'k-', label="Ideal")
+#                        plt.ylabel('Parallel efficiency [%]')
+#                        xmin, xmax = plt.xlim()
+#                        ymin, ymax = plt.ylim()
+#                        ymin=0
+#                        plt.ylim(ymin,ymax*1.1)
+#                        plt.legend(loc='best', fontsize=12)
+#                        pp.savefig()
+#                        plt.clf()
 
                         plt.title(title)
                         plt.xlabel('Number of MPI processes')
