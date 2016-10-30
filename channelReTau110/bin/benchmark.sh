@@ -1,251 +1,233 @@
 #!/bin/bash
 
-makeCaseSettings()
+getApplication()
 {
-    cat >  caseSettings <<EOF
-blockMeshDict
-{
-  mx $mx;
-  my $my;
-  mz $mz;
-}
-
-controlDict
-{
-  deltaT          $deltaT;
-  endTime         $endTime;
-  libs            $libs;
-}
-
-decomposeParDict
-{
-  numberOfSubdomains  $numberOfSubdomains;
-
-  method scotch;
-
-  simpleCoeffs
-  {
-      nx 4;
-      ny 2;
-      nz 2;
-  }
-}
-
-fvSolution
-{
-  solvers
-  {
-      p
-      {
-          solver           $solver;
-          smoother         $smoother;
-          preconditioner   $preconditioner;
-      }
-  }
-}
-
-turbulenceProperties
-{
-  simulationType $simulationType;
-}
-
-LESProperties
-{
-  LESModel $LESModel;
-  delta $delta;
-  calcInterval $calcInterval;
-}
-EOF
+    sed -ne 's/^ *application\s*\([^s]*\)\s*;.*$/\1/p' system/controlDict
 }
 
 LimitNumberOfBatchQueue()
 {
-    while : 
+    while :
     do
 	nq=$(NumberOfBatchQueue)
         [ "$nq" -lt "$MAX_NUMBER_OF_QUEUE" ] &&  break
 	sleep 1
     done
 }
-    
-# Source configulation file
-. benchmark.conf
 
-mpi="00001"
-solver="PCG"
-preconditioner="DIC"
-smoother="DIC"
-simulationType="laminar"
-LESModel="laminar"
-delta="cubeRootVol"
-calcInterval="1"
-libs=\"\"
+BatchSubmitAndWait()
+{
+    local batchFile=$1
 
-templateDir=$PWD/../template
-batchScriptDir=$PWD/batchScript
+    local batchFileDone=$batchFile.done
+    if [ ! -f $batchFileDone ];then
+	LimitNumberOfBatchQueue
+	BatchSubmit $batchFile 1
+	
+	while [ ! -f $batchFileDone ];do
+	    sleep 1
+	done
+    fi
+}
 
-loop=1
-while [ "$loop" -le "$MAX_NUMBER_OF_LOOP" ]
+SymlinkParentFiles()
+{
+    ln -s ../0 ./
+    mkdir constant
+    (cd constant
+	ln -s ../../constant/* ./
+    )
+    mkdir system
+    (cd system
+	ln -s ../../system/* ./
+    )
+					
+    if [ -d ../processor0 ];then
+	for dir in ../processor*
+	do
+	    processorDir=`basename $dir`
+	    mkdir $processorDir
+	    (cd $processorDir
+		ln -s ../../$processorDir/{0,constant} ./
+	    )
+	done
+    fi
+}
+
+if [ "$#" -ne 1 ];then
+        cat<<USAGE
+Usage: ${0##*/} configuration
+USAGE
+    exit 1
+fi
+
+# Source configuration file
+configuration=$1
+if [ ! -f $configuration ]
+then
+    echo "Error: $configuration does not exist."
+    exit 1
+fi
+. $configuration
+
+batchScriptDir=$PWD/share/batchScript
+solveBatchScriptDir=$batchScriptDir/solve
+decomposeParDictDir=$PWD/share/decomposeParDict
+fvSolutionDir=$PWD/share/fvSolution
+preBatchFile=$batchScriptDir/pre.sh
+decomposeParBatchFile=$batchScriptDir/decomposePar.sh
+
+for file in $preBatchFile $decomposeParBatchFile
 do
-    echo "loop= $loop"
-    loop=`expr $loop + 1`
-    for n in ${nArray[@]}
-    do
-	echo "n= $n"
+    if [ ! -f $file ];then
+	echo "Error: $file does not exist."
+	exit 1
+    fi
+done
 
-	mx=`echo $n | awk '{printf("%d", 120*$1^(1./3.) + 0.5)}'`
-	my=`echo $n | awk '{printf("%d", 65*$1^(1./3.) + 0.5)}'`
-	mz=`echo $n | awk '{printf("%d", 48*$1^(1./3.) + 0.5)}'`
+[ ! -d cases ] && makeCases
 
-	deltaT=`echo $n | awk '{printf("%f", 0.004/($1^(1./3.)))}'`
-	endTime=`echo $deltaT | awk '{printf("%f", $1*52)}'`
+(
+    cd cases
 
-	dir=n_$n
-
-	if [ ! -d $dir ];then
-	    cp -r $templateDir $dir
+    batchFile=pre.sh
+    cp $preBatchFile $batchFile
+    chmod +x $batchFile
+    if [ $BATCH_PRE -eq 1 ];then
+	BatchSubmitAndWait $batchFile
+    else
+	batchFileDone=$batchFile.done
+	if [ ! -f $batchFileDone ];then
+	    ./$batchFile $$
 	fi
+    fi
 
-	(cd $dir
-	    makeCaseSettings
+    loop=1
+    while [ "$loop" -le "$MAX_NUMBER_OF_LOOP" ]
+    do
+	echo "loop= $loop"
 
-	    if [ ! -f constant/polyMesh/faces ];then
-		batchFile=blockMesh.sh
-		if [ -f $batchScriptDir/$batchFile ];then
-		    cp $batchScriptDir/$batchFile ./
-		    LimitNumberOfBatchQueue
-		    BatchSubmit $batchFile 1
+	for decomposeParDict in ${decomposeParDictArray[@]}
+	do
+	    echo "decomposeParDict= $decomposeParDict"
 
-		    while [ ! -f constant/polyMesh/faces ];do
-			sleep 1
-		    done
+	    decomposeParDictFile=$decomposeParDictDir/$decomposeParDict
+	    if [ ! -f  $decomposeParDictFile ];then
+		echo "Cannot find $decomposeParDictFile. "
+		if [ "${decomposeParDict##*-}" == "method_scotch" ]
+		then
+		    echo "Generating from template file."
+		    mpitmp=${decomposeParDict%%-*}
+		    mpitmp=`echo ${mpitmp#mpi_} | bc`
+		    sed s/"\(numberOfSubdomains[ \t]\)[0-9]*;"/"\1 $mpitmp;"/ $decomposeParDictDir/template > $decomposeParDictFile 
 		else
-		    blockMesh >& log.blockMesh
+		    echo "Skip running."
+		    continue
 		fi
 	    fi
 
-	    for mpi in ${mpiArray[@]}
-	    do
-		echo "mpi= $mpi"
-		dir2=mpi_$mpi
+	    mpi=`sed -ne 's/^numberOfSubdomains[ \t]*\(.*\);/\1/p' $decomposeParDictFile`
+	    echo "mpi= $mpi"
+
+	    if [ ! -d $decomposeParDict ];then
+		mkdir $decomposeParDict
+		(cd $decomposeParDict
+		    SymlinkParentFiles
+		    rm -rf 0
+		    cp -a ../0 ./
+		)
+	    fi
 		
-		if [ ! -d $dir2 ];then
-		    cp -r $templateDir $dir2
-		fi
-		
-		(cd $dir2
-		    (cd constant
-			rm -rf polyMesh
-			ln -s ../../constant/polyMesh .
-		    )
+	    (cd $decomposeParDict
+		rm -f system/decomposeParDict
+		cp $decomposeParDictFile system/decomposeParDict
 
-		    numberOfSubdomains=`echo "$mpi" | bc` 
-
-		    makeCaseSettings
-		    
-		    if [ "$mpi" -gt 1 ];then 
-			if [ ! -d processor0 ];then
-			    batchFile=decomposePar.sh
-			    if [ -f $batchScriptDir/$batchFile ];then
-				cp $batchScriptDir/$batchFile ./
-				LimitNumberOfBatchQueue
-				BatchSubmit $batchFile 1
-
-				processorLast=`expr $mpi - 1`
-				while [ ! -f processor${processorLast}/0/p ];do
-				    sleep 1
-				done
-			    else
-				decomposePar -cellDist >& log.decomposePar
-			    fi
+		if [ "$mpi" -gt 1 ];then
+		    batchFile=decomposePar.sh
+		    cp $decomposeParBatchFile $batchFile
+		    chmod +x $batchFile
+		    if [ $BATCH_DECOMPOSEPAR -eq 1 ];then
+			BatchSubmitAndWait $batchFile
+		    else
+			batchFileDone=$batchFile.done
+			if [ ! -f $batchFileDone ];then
+			    ./$batchFile $$
 			fi
 		    fi
+		fi
 
-		    for simulationTypes in ${simulationTypesArray[@]}
-		    do
-			simulationType=${simulationTypes%%-*}
-			LESModels=${simulationTypes##*LESModel_}
-			LESModel=${LESModels%%-*}
-			deltas=${simulationTypes##*delta_}
-			delta=${deltas%%-*}
-			calcInterval=${simulationTypes##*calcInterval_}
-			if [ "$LESModel" == "WALE" ];then
-			    libs="\"libincompressibleWALE.so\""
-			else
-			    libs=""
-			fi
+		for fvSolution in ${fvSolutionArray[@]}
+		do
+		    echo "fvSolution= $fvSolution"
 
-			for solvers in ${solversArray[@]}
+		    fvSolutionFile=$fvSolutionDir/$fvSolution
+		    if [ ! -f $fvSolutionFile ];then
+			echo "Cannot find $fvSolutionFile. Skip running"
+			continue
+		    fi
+
+		    if [ ! -d $fvSolution ];then
+			mkdir $fvSolution
+			(cd $fvSolution
+			    SymlinkParentFiles
+			)
+		    fi
+
+		    (cd $fvSolution
+			echo "dir= cases/$decomposeParDict/$fvSolution"
+
+			rm -f system/fvSolution
+			cp $fvSolutionFile system/fvSolution
+
+			for solveBatch in ${solveBatchArray[@]}
 			do
-			    solver=${solvers%%-*}
-			    preconditioner=${solvers##*preconditioner_}
-			    smoother=${solvers##*smoother_}
+			    echo "solveBatch= $solveBatch"
 
-			    dir3=simulationType_$simulationTypes-solver_$solvers
-
-			    if [ ! -d $dir3 ];then
-				cp -r ../../../template $dir3
+			    solveBatchFile=$solveBatchScriptDir/$solveBatch
+			    if [ ! -f  $solveBatchFile ];then
+				echo "Cannot find $solveBatchFile. Skip running"
+				continue
 			    fi
 
-			    (cd $dir3
-				echo "dir= $dir/$dir2/$dir3"
+			    if [ ! -d $solveBatch ];then
+				mkdir $solveBatch
+				(cd $solveBatch
+				    SymlinkParentFiles
+				)
+			    fi
+			
+			    (cd $solveBatch
+				echo "dir= cases/$decomposeParDict/$fvSolution/$solveBatch"
 
-				ndone=`ls log.*[0-9] 2> /dev/null | wc -l`
-				if [ "$ndone" -ge "$MAX_NUMBER_OF_LOOP" ];then
-				    echo "Allready run in $MAX_NUMBER_OF_LOOP time(s). Skip running" 
+				cp $solveBatchFile ./
+				chmod +x $solveBatchFile
+
+				application=$(getApplication)
+				echo "application= $application"
+
+				ndone=`ls log.${application}.*.done 2> /dev/null | wc -l`
+				nqueue=`ls log.${application}.$$.*.queue  2> /dev/null | wc -l`
+				ndoneAndQueue=`expr $ndone + $nqueue`
+				echo "ndoneAndQueue = $ndoneAndQueue (ndone = $ndone, nqueue = $nqueue)"
+				if [ "$ndoneAndQueue" -ge "$MAX_NUMBER_OF_LOOP" ];then
+				    echo "Already run in $MAX_NUMBER_OF_LOOP time(s). Skip running"
 				    continue
 				fi
 
-				(cd constant
-				    rm -rf polyMesh
-				    ln -s ../../constant/polyMesh .
-				)
-
-				if [ "$mpi" -gt 1 ];then 
-				    for p in ../processor*
-				    do
-					b=`basename $p`
-					rm -rf $b
-					mkdir $b
-					(cd $b
-					    ln -s ../../$b/{0,constant} .
-					)
-				    done
-				fi
-
-				makeCaseSettings
-
-				if [ "$solver" == "PCG" -a ${preconditioner%%+*} == "GAMG" ];then
-				    smoother=${preconditioner##*+}
-				    mv system/fvSolution system/fvSolution.orig
-				    sed \
-"s/\$:fvSolution.solvers.p.preconditioner;/\
-{preconditioner GAMG;\
-agglomerator faceAreaPair;\
-nCellsInCoarsestLevel 100;\
-mergeLevels 1;\
-smoother ${smoother};}/"\
- system/fvSolution.orig > system/fvSolution
-				fi
-
-				batchFile=solve.sh
-				if [ -f $batchScriptDir/$batchFile ];then
-				    cp $batchScriptDir/$batchFile ./
+				if [ $BATCH_SOLVE -eq 1 ];then
 				    LimitNumberOfBatchQueue
-				    BatchSubmit $batchFile $mpi
+				    BatchSubmit $solveBatch $mpi
+				    touch log.${application}.$$.$loop.queue
 				else
-				    if [ "$mpi" -gt 1 ];then 
-					mpiexec -np $mpi \
-					    pimpleFoam -parallel >& log.pimpleFoam.$$
-				    else
-					pimpleFoam >& log.pimpleFoam.$$
-				    fi
+				    GenerateHostFile $mpi
+				    ./$solveBatch $mpi $$_$loop
 				fi
 			    )
 			done
-		    done
-		)
-	    done
-	)
+		    )
+		done
+	    )
+	done
+	loop=`expr $loop + 1`
     done
-done
+)

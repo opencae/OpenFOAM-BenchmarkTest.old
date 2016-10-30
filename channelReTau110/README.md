@@ -6,219 +6,315 @@ OpenFOAM-BenchmarkTest-channelReTau110は
 オープンCAE学会V&V委員会OpenFOAMベンチマークテストWGで作成した，
 チャネル流れ(Re_tau=110)channelReTau110[1]を対象とした
 ベンチマークテストである．
+52ステップのみ計算を行い，
+第1ステップから第51ステップまでの1ステップあたりの平均解析時間を算出し，
+計算時間の比較および並列化効率を調べる．
 
 ## ファイルの構成
 
-    README       このファイル
-    bin/         スクリプト
-    src/         ソース
-    template/    channelReTau110のケースディレクトリ
-    NoBatch/     非バッチジョブシステムでの設定例
+    README.md         このファイル
+    bin/              スクリプト
+      benchmark.sh      ベンチマーク実行スクリプト
+      cleanFailLog.sh   完了しなかったソルバログの消去・移動スクリプト
+      plot.py           ベンチマーク結果のプロット用Pythonスクリプト
+      table.sh          ベンチマーク結果の集計スクリプト   
+    src/              ソース
+    template/         channelReTau110のケースディレクトリ
+    NoBatch-mesh_3M/  非バッチジョブシステムでの3M格子の設定例
+      all               ベンチマークケース設定ファイル(ファイル名任意)
+      share/            ベンチマークケース共有設定ファイルのディレクトリ
+        batchScript/      バッチスクリプトのディレクトリ
+          decomposePar.sh   領域分割バッチスクリプト
+          pre.sh            前処理バッチスクリプト
+          solve/            ソルバー解析バッチスクリプトのディレクトリ
+        decomposeParDict/ 領域分割設定ファイルのディレクトリ
+          template          scotch型領域分割設定ファイルのテンプレート
+        fvSolution/       解法設定ファイルのディレクトリ
 
 その他のディレクトリはベンチマークのテスト結果である．
 
-## 設定
+## ベンチマークの設定
+### 非バッチジョブシステム用ベンチマークケース設定
+ベンチマークケースの設定ファイル名は任意のファイルで良いが，
+例えばallとすると以下のように設定する．
 
-### ベンチマークケースのパラメータや関数の設定
+NoBatch-mesh_3M/all
+```
+# 領域分割設定検討ケース配列
+decomposeParDictArray=(
+mpi_0010-method_scotch
+mpi_0020-method_scotch
+)
 
-ベンチマークケースのパラメータや関数は benchmark.conf で設定する．
+# 解法設定の検討ケース配列
+fvSolutionArray=(
+GAMG-DIC
+PCG-DIC
+)
 
-### nArray(格子数倍率nのベンチマークケース)
+# ソルバー解析バッチスクリプトの検討ケース配列
+solveBatchArray=(
+OpenFOAM
+)
 
-格子数倍率nは，格子数374400(nx=120,ny=65,nz=48)をベースにとした格子の倍数である．
-ベンチマークケースnArrayの要素にはnを0埋めの5桁の整数値，かつ文字列形式で記述する．
+MAX_NUMBER_OF_LOOP=1  # ベンチマークテストの繰り返し数
 
-  標準条件: n=00008
- 
-なお，上記の場合の格子数は2,995,200=約3Mである．
+BATCH_PRE=0           # 前処理のバッチジョブでの実行(0=しない)
+BATCH_DECOMPOSEPAR=0  # 領域分割のバッチジョブでの実行(0=しない)
+BATCH_SOLVE=0         # ソルバ解析のバッチジョブでの実行(0=しない)
 
-### mpiArray(MPI並列数mpiのベンチマークケース)
+# ケースファイルの作成
+# 格子分割数(mx,my,mz)，時間刻み(deltaT)，終了時刻(endTime)を設定する．
+# なお，格子分割数の比mx:my:mzは120:65:48とする．
+# また，時間刻みdeltaTは0.48/mx，endTimeはdeltaT*52の値にする．
+makeCases()
+{
+    local mx=240
+    local my=130
+    local mz=96
+    local deltaT=0.002
+    local endTime=0.104
 
-MPI並列数mpiのベンチマークケースmpiArrayの要素には，
-mpiの値を0埋めの5桁の整数かつ文字列形式で記述する．
+    cp -a ../template cases
 
-  標準条件: 無し．
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
 
-ただし，並列化効率をみるために複数のMPI並列数で計算することを推奨する．
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
 
-### simulationTypesArray(乱流モデルのベンチマークケース)
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
 
-乱流モデルのベンチマークケースsimulationTypesArrayの要素には，
-以下の形式の文字列を羅列する．
+# MPIプロセス実行ホストの設定ファイルhostfileを生成する関数
+#
+# 1ノードでの実行用に設定されているので，多ノードで実行する場合には
+# 変更する必要がある．
+# ただし，バッチジョブシステムを用いる場合には設定不要．
+GenerateHostFile()
+{
+  local mpi=$1
+  (
+    i=0
+    while [ $i -lt $mpi ]
+    do
+      echo "localhost" 
+      i=`expr $i + 1`
+    done
+  ) > hostfile
 
-  "(simulationTypesの値)-LESModel_(LESModelの値)-delta_(deltaの値)-calcInterval_(calcIntervalの値)"
+```
 
-  標準条件:
-  laminar-LESModel_laminar-delta_cubeRootVol-calcInterval_1
+decomposeParDictArrayには
+領域分割設定ファイルのディレクトリshare/decomposeParDictにあ
+る領域分割設定ファイルの中から検討するケースを指定する．
+なお，scotch分割の場合には，対応するファイルが
+share/decomposeParDictが無い場合，
+share/decomposeParDict/templateを元に領域分割数に
+応じた設定ファイルが自動的に作成される．
 
-ただし，
+fvSolutionArrayには
+解法設定ファイルのディレクトリshare/fvSolutionにあ
+る解法設定ファイルの中から検討するケースを指定する．
 
-  LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_1
-  LESModel-LESModel_Smagorinsky-delta_vanDriest-calcInterval_100
+solveBatchArrayには
+ソルバー解析バッチスクリプトのディレクトリ
+share/batchScript/solveにある
+ソルバー解析バッチスクリプトの中から検討するケースを指定する．
+この配列は，OpenFOAMのバージョンやコンパイラ，MPIライブラリの種類，
+およびMPIライブラリ等の実行時の設定などを変更した
+ケーススタディを自動的に行うために用意されている．
 
-のケースも計算することを推奨する．
+なお，総検討ケースは，
+decomposeParDictArray，fvSolutionArray，
+solveBatchArrayの配列の積の組み合わせとなる．
 
-### solversArray(圧力に対する線型ソルバのベンチマークケース)
+### バッチジョブシステム用ベンチマークケース設定
 
-圧力に対する線型ソルバのベンチマークケースsolversArrayの要素には，
-以下の形式の文字列を羅列する．
+バッチジョブシステムでは，例えば以下のように設定する．
 
-  "PCG-preconditioner_(preconditionerの値)"
-  "GAMG-smoother_(smootherの値)"
+Reedbush_U-mesh_3M-No1/all
+```
+BATCH_PRE=0            # 前処理のバッチジョブでの実行(0=しない)
+BATCH_DECOMPOSEPAR=0   # 領域分割のバッチジョブでの実行(0=しない)
+BATCH_SOLVE=1          # ソルバ解析のバッチジョブでの実行(1=する)
 
-  標準条件:
-  PCG-preconditioner_DIC
-  GAMG-smoother_DIC
+MAX_NUMBER_OF_QUEUE=50 # バッチジョブでの最大投入キュー数
+NAME=OFBench           # バッチジョブの名前
 
-ただし，
+NPROCS_PER_NODE=36     # ノードあたりのプロセッサ数
 
-  PCG-preconditioner_FDIC
-  GAMG-smoother_FDIC
-  GAMG-smoother_DICGaussSeidel
-  GAMG-smoother_GaussSeidel  
+# 投入済のバッチキューの数を返す関数
+NumberOfBatchQueue()
+{
+    rbstat -l | grep "^[0-9]" | wc -l
+}
 
-のソルバーも計算することを推奨する．
+# バッチジョブを投入する関数
+BatchSubmit()
+{
+    local BATCHFILE=$1
+    local MPI=$2
 
-### MAX_NUMBER_OF_LOOP(ベンチマークテストの繰り返し数)
+    local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+(略)	
+    qsub \
+	-W group_list=$GROUP \
+	-q $QUEUE \
+	-l walltime=$WALLTIME \
+	-l select=$NODE:ncpus=$NPROCS_PER_NODE:mpiprocs=$NPROCS_PER_NODE:ompthreads=1 \
+	$BATCHFILE
+}
+```
 
-ベンチマークテストの繰り返し数を整数値で指定する．
+## バッチスクリプトの設定
+### 前処理バッチスクリプト
 
-  標準条件: 5
+前処理を行うバッチスクリプトをshare/batchScript/pre.shに置く．
 
-### MAX_NUMBER_OF_QUEUE(バッチキューの最大値)
+BenchmarkTest_3M_NoBatch/share/batchScript/pre.sh
+```
+#!/bin/bash
 
-ベンチマークテストの実行スクリプトで投入可能なバッチキューの最大値を指定する．
-バッチジョブシステムを使用しない場合には無視される．
+application=pre.sh
 
-  標準条件: 1
+(
+env
+blockMesh
+) >& log.${application}.$1
 
-### NumberOfBatchQueue(バッチキュー数を返す関数)
+touch ${application}.done
+```
 
-バッチキュー数を返す関数を定義する．
+### 領域分割バッチスクリプト
 
-    NumberOfBatchQueue()
-    {
-    	nq=`squeue | wc -l`
-    	expr $nq - 1
-    }
+領域分割を行うバッチスクリプトをshare/batchScript/decomposePar.shに置く．
 
-バッチジョブシステムを使用しない場合には以下のように定義する．
+BenchmarkTest_3M_NoBatch/share/batchScript/pre.sh
+```
+#!/bin/bash
 
-    NumberOfBatchQueue()
-    {
-    	# No operation
-    	rtn=""
-    }
+application=decomposePar.sh
 
-### BatchSubmit(バッチジョブを投入する関数)
+(
+    env
+    decomposePar -cellDist 
+) >& log.${application}.$1
 
-バッチジョブを投入する関数を定義する．
+touch ${application}.done
+```
 
-    BatchSubmit()
-    {
-    	local BATCHFILE=$1
-    	local MPI=$2
-    
-    	sbatch -n $MPI $BATCHFILE
-    }
+### ソルバー解析バッチスクリプト
+領域分割を行うバッチスクリプトをshare/batchScript/solve/に置く．
+mpirunのオプションが必要であれば追加する．
 
-バッチジョブシステムを使用しない場合には以下のように定義する．
+NoBatch-mesh_3M/share/batchScript/solve/OpenFOAM
+```
+#!/bin/bash
 
-    BatchSubmit()
-    {
-    
-    	# No operation
-    	rtn=""
-    }
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
 
-## バッチジョブスクリプトの設定
+# Get application name
+application=$(getApplication)
 
-バッチジョブシステムを使用する場合には，batchScriptのディレクトリの中に以下の
-バッチジョブスクリプトを作成する．
+log=log.${application}.$2
+(
+env
+mpirun -np $1 -machinefile hostfile \ # 必要に応じてmpirunのオプションを追加
+$(getApplication) -parallel
+) >& $log
 
-* batchScript/
-*   blockMesh.sh     blockMesh実行バッチジョブスクリプト
-*   decomposePar.sh  decomposePar実行バッチジョブスクリプト
-*   solve.sh         ソルバ実行バッチジョブスクリプト
+grep "^End" $log >& /dev/null
+[ $? -eq 0 ] && touch $log.done
+```
 
-batchScriptのディレクトリが無い場合には，バッチジョブシステムを使用し
-ないで，blockMesh，decomposeParやソルバが実行される．
+## ベンチマークの実行・集計・プロット
 
-## ベンチマークケースの実行
-### ベンチマークケースの設定
+### ベンチマークの実行
 
-channelReTau110のディレクトリの下に，ベンチマーク実行用のディレクトリ
-を作成し，環境に合わせて適切にbenchmark.confを作成する．
-また，バッチジョブシステムを使用する場合には，batchScriptのディレクト
-リを作成し，適切にバッチジョブスクリプトを作成する．
+ベンチマークの実行は以下のようにする．
 
-### ベンチマークケースの実行
-
-ベンチマーク実行用のディレクトリ上で以下を実行する．
-
-    $ nohup ../bin/benchmark.sh >&  log.benchmark.sh &
+```bash
+./benchmark.sh ベンチマークケース設定ファイル名(all等) >& log &
+```
 
 ### ベンチマーク結果の集計
 
 ベンチマーク実行用のディレクトリ上で以下を実行する．
 
-    $ ../bin/table.sh
+```bash
+./table.sh ベンチマークケース設定ファイル名(all等)
+```
 
-ベンチマーク結果を集計したファイルtable.csv，および
-ソルバのログと設定ファイル(caseSettings)のアーカイブファイル
-caseSettings-log.tar.bz2 が作成される．
-
+ベンチマーク結果を集計したファイルベンチマークケース設定ファイル名.csv
+および，ソルバのログのアーカイブファイル
+ファイルベンチマークケース設定ファイル名.tar.bz2
+が作成される．
 なお，アーカイブファイルに収録されるソルバのログは，
 先頭がBuildから始まるヘッダーから，先頭がEndのまでの部分を取り出し，
 かつ，プライバシーのため，ヘッダーにおける，HostとCaseの行，および
 Slaveの情報を消している．
 
-## ベンチマーク結果のプロット
+### ベンチマーク結果のプロット
 
 ベンチマーク実行用のディレクトリ上で以下のPythonスクリプトを実行する．
 
-    $ ../bin/plot.py
+```bash
+./plot.py csvファイル名(all.csv等)
+```
 
 ベンチマーク結果をプロットしたファイル*.pdfが作成される．
-
 なお，NumPy,PyLab,matplotlibのライブラリが必要である．
 
 ## ベンチマーク結果の提供のお願い
+
 ベンチマークテストを行なった場合には，以下のデータを提供をお願いする．
 
     README.md
-    benchmark.conf     ベンチマークケースのパラメータや関数の設定
-    table.csv          ベンチマーク結果を集計したファイル
-    batchScript/*.sh   バッチジョブスクリプト(バッチジョブシステムの場合)
-    caseSettings-log.tar.bz2 ソルバのログと設定のアーカイブ
+    ベンチマークケース設定ファイル
+    ベンチマーク結果を集計したファイル(*.csv)
+    ソルバのログのアーカイブファイル(*.tar.bz2)
+    ベンチマークケース共有設定ファイルのディレクトリ(share/*)  
 
 ### README.md
 
-    # channelReTau110-ハードウェア名称-コンパイラ-MPIライブラリ
+    # ハードウェア名称-mesh_格子数-NoX
 
     ## 測定者情報
 
-    * 測定者: (本名で無くても構いません)
+    * 測定者: [本名で無くても構いません]
+    * 測定日: [例: 2016年1月1日-2016年1月2日]
+
+    ## ベンチマーク情報
+
+    * 格子数: [例: 3M(240x130x96)]
+    * MPI数[ノード数]: [例: 10(1)，20(2)]
 
     ## ハードウェア情報
-    * ハードウェア名称: (例: NEC Express5800/HR120a-1)
-    * CPUの種別: (例: Intel Xeon CPU E5-2680 v2)
-    * CPUの周波数: (例: 2.80GHz)
-    * コア数/CPU: (例: 10)
-    * CPU数/ノード: (例: 2)
-    * メモリ量/ノード: (例: 28GB)
-    * メモリ種別: SDRAM DDR3-1333 ECC
-    * メモリ帯域幅: 85 GB/s
-    * インターフェース種別: (例: FDR-InfiniBand) 
-    * インターフェース数/ノード: (例: 1基) 
-    * インターフェース・スループット/基: (例: 56Gbps) 
+    * ハードウェア名称: [例: NEC Express5800/HR120a-1]
+    * CPUの種別: [例: Intel Xeon CPU E5-2680 v2]
+    * CPUの周波数: [例: 2.80GHz]
+    * コア数/CPU: [例: 10]
+    * CPU数/ノード: [例: 2]
+    * メモリ量/ノード: [例: 28GB]
+    * メモリ種別: [例: SDRAM DDR3-1333 ECC]
+    * メモリ帯域幅: [例: 85 GB/s]
+    * インターフェース種別: [例: FDR-InfiniBand] 
+    * インターフェース数/ノード: [例: 1基] 
+    * インターフェース・スループット/基: [例: 56Gbps] 
     * その他特記事項:
 
     ## ソフトウェア情報
-    * OpenFOAMのバージョン: (例: ###)
-    * ビルドに使用したコンパイラ: (例: Gcc-###)
-    * コンパイラの最適化オプション: (例: -O3)
-    * 使用したMPIライブラリ: (例: openmpi-###)
+    * OpenFOAMのバージョン: [例: OpenFOAM-4.1]
+    * ビルドに使用したコンパイラ: [例: Gcc-4.8.5]
+    * コンパイラの最適化オプション: [例: -O3]
+    * 使用したMPIライブラリ: [例: OpenMPI-1.8.4]
     * その他特記事項:
 
 ## References

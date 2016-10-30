@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.0                                 |
+|  \\    /   O peration     | Version:  4.0                                   |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,12 +10,9 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
     object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include        "$FOAM_CASE/caseSettings"
 
 application     pimpleFoam;
 
@@ -23,15 +20,15 @@ startFrom       startTime;
 
 startTime       0;
 
-stopAt          nextWrite;
+stopAt          endTime;
 
 writeControl    runTime;
 
-deltaT          $:controlDict.deltaT;
+deltaT          0.002;
 
-endTime         $:controlDict.endTime;
+endTime         0.104;
 
-writeInterval   $:controlDict.endTime;
+writeInterval   1;
 
 purgeWrite      0;
 
@@ -45,22 +42,26 @@ timeFormat      general;
 
 timePrecision   6;
 
-runTimeModifiable true;
-
-libs
-(
- $:controlDict.libs
-);
+runTimeModifiable false;
 
 functions
 {
     fieldAverage1
     {
+        // Type of functionObject
         type            fieldAverage;
+
+        // Where to load it from (if not already in solver)
         functionObjectLibs ( "libfieldFunctionObjects.so" );
+
+        // Function object enabled flag
         enabled         true;
+
+        // When to output the average fields
+        writeControl    writeTime;
         outputControl   outputTime;
 
+        // Fields to be averaged - runTime modifiable
         fields
         (
             U
@@ -78,34 +79,6 @@ functions
             }
         );
     }
-
-    /*
-    flowRate
-    {
-        type            faceSource;
-        functionObjectLibs ("libfieldFunctionObjects.so");
-        enabled         true;
-
-        // Write at same frequency as fields
-        outputControl   timeStep;
-        outputInterval  1;
-
-        log             true;
-        valueOutput     false;
-
-        // Type of source: patch/faceZone/sampledSurface
-        source          patch;
-
-        sourceName      inout_half1;
-
-        operation       sum;
-
-        fields
-        (
-            phi
-        );
-    }
-    */
 }
 
 // ************************************************************************* //

@@ -1,0 +1,86 @@
+decomposeParDictArray=(
+mpi_0036-method_scotch
+mpi_0072-method_scotch
+#mpi_0144-method_scotch
+#mpi_0288-method_scotch
+#mpi_0576-method_scotch
+#mpi_1152-method_scotch
+#mpi_2304-method_scotch
+#mpi_4608-method_scotch
+)
+
+fvSolutionArray=(
+GAMG-DIC
+PCG-DIC
+)
+
+solveBatchArray=(
+#OF301_Icc_SGIMPI
+OF301_Icc_INTELMPI
+OF41_Icc_INTELMPI
+)
+
+MAX_NUMBER_OF_LOOP=1
+
+BATCH_PRE=0
+BATCH_DECOMPOSEPAR=0
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=50
+NAME=OFBench
+
+NPROCS_PER_NODE=36
+
+makeCases()
+{
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx 240;"/ \
+    -e s/"^ *my .*"/"my 130;"/ \
+    -e s/"^ *mz .*"/"mz 96;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT 0.002;"/ \
+    -e s/"^ *endTime .*"/"endTime 0.104;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+    rbstat -l | grep "^[0-9]" | wc -l
+}
+
+BatchSubmit()
+{
+    local BATCHFILE=$1
+    local MPI=$2
+
+    local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+    local GROUP="gz00"
+	
+    if [ $NODE -le 8 ];then	
+	QUEUE="u-lecture"
+	WALLTIME="00:10:00"
+    	GROUP="gt00"
+    elif [ $NODE -le 24 ];then	
+	QUEUE="u-debug"
+	WALLTIME="00:30:00"
+    else
+	QUEUE="u-regular"
+	WALLTIME="00:10:00"
+    fi
+
+				
+    qsub \
+	-W group_list=$GROUP \
+	-q $QUEUE \
+	-l walltime=$WALLTIME \
+	-l select=$NODE:ncpus=$NPROCS_PER_NODE:mpiprocs=$NPROCS_PER_NODE:ompthreads=1 \
+	$BATCHFILE
+}
+
