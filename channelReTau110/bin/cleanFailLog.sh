@@ -85,7 +85,8 @@ do
 			dir=`dirname $log`
 			(cd $dir
 			    [ ! -d $logFailDir ] && mkdir $logFailDir
-			    mv $base $base.done $logFailDir/
+			    mv $base $logFailDir/
+			    [ -f $base.done ] && mv $base.done $logFailDir/ 
 			)
 		    elif [  "$removeOpt" = true ];then
 			rm -f $log $log.done

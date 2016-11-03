@@ -189,6 +189,69 @@ def mpiExecutionTimePerStep(column,ylabel):
             plt.clf()
             pp.close()
     
+def mpiNumberOfStepsPerHour(column,ylabel):
+    pylab.subplots_adjust(top=0.95,bottom=0.1)
+
+    for solver in solverArray:
+        for method in methodArray:
+            title=solver+'-method_'+method
+            plotfile=plotfileBase+'-'+title+'-sph-'+column+'.pdf'
+            pp = PdfPages(plotfile)
+            print plotfile
+    
+            for batchFileName in batchFileNameArray:
+                idx=np.where(
+                    (data['method']==method)
+                    & (data['fvSolution']==solver)
+                    & (data['solveBatch']==batchFileName)
+                    )
+    
+                x=data['nProcs'][idx]
+    
+                ExecutionTimePerStep=data[column][idx]
+    
+                mpi = np.unique(x)
+                index0=[]
+                for mpiI in mpi:
+                    index0.append(np.where(x==mpiI)[0][0])
+                index1=index0[1:]
+                index1=np.append(index1,len(ExecutionTimePerStep))
+                ExecutionTimeAve=np.zeros(len(mpi))
+                ExecutionTimeSTD=np.zeros(len(mpi))
+                numberOfStepsPerHourAve=np.zeros(len(mpi))
+                numberOfStepsPerHourSTD=np.zeros(len(mpi))
+                for i in range(len(mpi)):
+                    ExecutionTime=ExecutionTimePerStep[index0[i]:index1[i]]
+                    ExecutionTime=np.sort(ExecutionTime)[0:min(len(ExecutionTime),nMaxSample)]
+                    ExecutionTimeAve[i]=np.average(ExecutionTime)
+                    ExecutionTimeSTD[i]=np.std(ExecutionTime)
+                    numberOfStepsPerHourAve[i]=3600.0/ExecutionTimeAve[i]
+                    numberOfStepsPerHourSTD[i]=np.std(3600.0/ExecutionTime)
+
+                if nMaxSample>1:
+                    plt.errorbar(mpi, numberOfStepsPerHourAve, yerr=numberOfStepsPerHourSTD
+                                 , label=batchFileName, linewidth=2)
+                else:
+                    plt.plot(mpi, numberOfStepsPerHourAve, label=batchFileName, linewidth=2)
+    
+            xmin=mpi[0]/1.1
+            xmax=mpi[-1]*1.1
+    
+            plt.legend(loc='best', prop={'size':fontSizeLegend})
+            plt.xscale('log')
+            plt.title(title)
+            plt.xlabel('Number of MPI processes')
+            plt.ylabel(ylabel)
+            plt.xticks(mpi,mpi)
+            plt.grid()
+            ymin, ymax = plt.ylim()
+            ymin=0
+            plt.xlim(xmin, xmax)
+            plt.ylim(ymin, ymax)
+            pp.savefig()
+            plt.clf()
+            pp.close()
+    
 def mpiParallelEfficiency(column,ylabel):
     pylab.subplots_adjust(top=0.95,bottom=0.1)
 
@@ -291,5 +354,7 @@ if len(nProcsArray)>1:
     mpiFirstExecutionTimePerStep('ClockTimeFirstStep','Clock time to complete 1st time step [s]')
     mpiExecutionTimePerStep('ExecutionTimePerStepWOLastStep','Execution time per time step [s]')
     mpiExecutionTimePerStep('ClockTimePerStepWOLastStep','Clock time per time step [s]')
-    mpiParallelEfficiency('ExecutionTimeFirstStep','Parallel efficiency [%] (Execution time base)')
-    mpiParallelEfficiency('ClockTimeFirstStep','Parallel efficiency [%] (Clock time base)')
+    mpiNumberOfStepsPerHour('ExecutionTimePerStepWOLastStep','Number of steps per hour (Execution time base)')
+    mpiNumberOfStepsPerHour('ClockTimePerStepWOLastStep','Number of steps per hour (Clock time base)')
+    mpiParallelEfficiency('ExecutionTimePerStepWOLastStep','Parallel efficiency [%] (Execution time base)')
+    mpiParallelEfficiency('ClockTimePerStepWOLastStep','Parallel efficiency [%] (Clock time base)')
