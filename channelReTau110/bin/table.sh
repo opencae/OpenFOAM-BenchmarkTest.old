@@ -23,7 +23,7 @@ application=`sed -ne 's/^ *application[ \t]*\([a-zA-Z]*\)[ \t]*;.*$/\1/p' cases/
 
 logs=""
 
-line="#decomposeParDict,method,fvSolution,solveBatch"
+line="#log,decomposeParDict,method,fvSolution,solveBatch"
 line="$line,Build,Date,Time,nNodes,nProcs"
 line="$line,CoMean,CoMax"
 line="$line,UxInitRes,UxFinalRes,UxNoIter"
@@ -82,27 +82,28 @@ do
                 ,(told-t1)/(n-2),(t-t1)/(n-1)\
                 }' \
 		$log`
+
+		newlog=$Dir/log.${application}.${n}th
 		    
-		line="$decomposeParDict,$method,$fvSolution,$solveBatch"
+		line="${newlog##*/},$decomposeParDict,$method,$fvSolution,$solveBatch"
 		line="$line,$Build,$Date,$Time,$nNodes,$nProcs"
     	        line="$line,$Co,$Ux,$Uy,$Uz,$p0,$p1,$err0,$err1"
 		line="$line,$ExecutionTime"
 		echo $line >> $csvFile
 		
-		newlog=$Dir/log.${application}.${n}th
-		awk -F ' ' 'BEGIN {n=0} \
-            {\
-               if ($1=="Build") n=1;\
-               if (n==1) {\
-                 if ($1=="Host")\
-                   { print "Host   :"}\
-                 else if ($1=="Case")\
-                   { print "Case   :"}\
-                 else if ($1 ~ /["]/)\
-                   { print "\"\"" }\
-                 else { print $0} };\
-               if ($1=="End") {n=0}\
-            }' $log > $newlog
+  		awk -F ' ' 'BEGIN {n=0} \
+                {\
+                if ($1=="Build") n=1;\
+                if (n==1) {\
+                  if ($1=="Host")\
+                    { print "Host   :"}\
+                  else if ($1=="Case")\
+                    { print "Case   :"}\
+                  else if ($1 ~ /["]/)\
+                    { print "\"\"" }\
+                  else { print $0} };\
+                if ($1=="End") {n=0}\
+                }' $log > $newlog
 
 		logs="$logs $newlog"
 

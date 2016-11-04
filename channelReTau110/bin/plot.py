@@ -71,13 +71,18 @@ def solverExecutionTimePerStep(column,ylabel):
         plt.clf()
         pp.close()
 
-def mpiFirstExecutionTimePerStep(column,ylabel):
+def mpiFirstExecutionTimePerStep(column,ylabel,yscalelog=False):
     pylab.subplots_adjust(top=0.95,bottom=0.1)
 
     for solver in solverArray:
         for method in methodArray:
             title=solver+'-method_'+method
-            plotfile=plotfileBase+'-'+title+'-1stTime-'+column+'.pdf'
+            plotfile=plotfileBase+'-'+title+'-1stTime-'+column
+            if yscalelog:
+                plotfile=plotfile+'-log'
+            else:
+                plotfile=plotfile+'-linear'
+            plotfile=plotfile+'.pdf'
             pp = PdfPages(plotfile)
             print plotfile
     
@@ -123,20 +128,28 @@ def mpiFirstExecutionTimePerStep(column,ylabel):
             plt.xticks(mpi,mpi)
             plt.grid()
             ymin, ymax = plt.ylim()
-            ymin=0
+            if yscalelog:
+                plt.yscale('log')
+            else:
+                ymin=0
             plt.xlim(xmin, xmax)
             plt.ylim(ymin, ymax)
             pp.savefig()
             plt.clf()
             pp.close()
     
-def mpiExecutionTimePerStep(column,ylabel):
+def mpiExecutionTimePerStep(column,ylabel,yscalelog=False):
     pylab.subplots_adjust(top=0.95,bottom=0.1)
 
     for solver in solverArray:
         for method in methodArray:
             title=solver+'-method_'+method
-            plotfile=plotfileBase+'-'+title+'-loopTime-'+column+'.pdf'
+            plotfile=plotfileBase+'-'+title+'-loopTime-'+column
+            if yscalelog:
+                plotfile=plotfile+'-log'
+            else:
+                plotfile=plotfile+'-linear'
+            plotfile=plotfile+'.pdf'
             pp = PdfPages(plotfile)
             print plotfile
     
@@ -182,20 +195,28 @@ def mpiExecutionTimePerStep(column,ylabel):
             plt.xticks(mpi,mpi)
             plt.grid()
             ymin, ymax = plt.ylim()
-            ymin=0
+            if yscalelog:
+                plt.yscale('log')
+            else:
+                ymin=0
             plt.xlim(xmin, xmax)
             plt.ylim(ymin, ymax)
             pp.savefig()
             plt.clf()
             pp.close()
     
-def mpiNumberOfStepsPerHour(column,ylabel):
+def mpiNumberOfStepsPerHour(column,ylabel,yscalelog=False):
     pylab.subplots_adjust(top=0.95,bottom=0.1)
 
     for solver in solverArray:
         for method in methodArray:
             title=solver+'-method_'+method
-            plotfile=plotfileBase+'-'+title+'-sph-'+column+'.pdf'
+            plotfile=plotfileBase+'-'+title+'-sph-'+column
+            if yscalelog:
+                plotfile=plotfile+'-log'
+            else:
+                plotfile=plotfile+'-linear'
+            plotfile=plotfile+'.pdf'
             pp = PdfPages(plotfile)
             print plotfile
     
@@ -245,7 +266,10 @@ def mpiNumberOfStepsPerHour(column,ylabel):
             plt.xticks(mpi,mpi)
             plt.grid()
             ymin, ymax = plt.ylim()
-            ymin=0
+            if yscalelog:
+                plt.yscale('log')
+            else:
+                ymin=0
             plt.xlim(xmin, xmax)
             plt.ylim(ymin, ymax)
             pp.savefig()
@@ -347,14 +371,20 @@ if len(solverArray)>1:
     solverExecutionTimePerStep('ClockTimePerStepWOLastStep','Clock time per time step [s]')
 
 if len(nProcsArray)>1:
-    for decomposeParDict in decomposeParDictArray:
-        decomposeParDict
-
-    mpiFirstExecutionTimePerStep('ExecutionTimeFirstStep','Execution time to complete 1st time step [s]')
-    mpiFirstExecutionTimePerStep('ClockTimeFirstStep','Clock time to complete 1st time step [s]')
-    mpiExecutionTimePerStep('ExecutionTimePerStepWOLastStep','Execution time per time step [s]')
-    mpiExecutionTimePerStep('ClockTimePerStepWOLastStep','Clock time per time step [s]')
-    mpiNumberOfStepsPerHour('ExecutionTimePerStepWOLastStep','Number of steps per hour (Execution time base)')
-    mpiNumberOfStepsPerHour('ClockTimePerStepWOLastStep','Number of steps per hour (Clock time base)')
     mpiParallelEfficiency('ExecutionTimePerStepWOLastStep','Parallel efficiency [%] (Execution time base)')
     mpiParallelEfficiency('ClockTimePerStepWOLastStep','Parallel efficiency [%] (Clock time base)')
+
+    for yscalelog in [True,False]:
+        mpiFirstExecutionTimePerStep('ExecutionTimeFirstStep','Execution time to complete 1st time step [s]'
+                                     ,yscalelog)
+        mpiFirstExecutionTimePerStep('ClockTimeFirstStep','Clock time to complete 1st time step [s]'
+                                     ,yscalelog)
+        mpiExecutionTimePerStep('ExecutionTimePerStepWOLastStep','Execution time per time step [s]'
+                                ,yscalelog)
+        mpiExecutionTimePerStep('ClockTimePerStepWOLastStep','Clock time per time step [s]'
+                                ,yscalelog)
+        mpiNumberOfStepsPerHour('ExecutionTimePerStepWOLastStep','Number of steps per hour (Execution time base)'
+                                ,yscalelog)
+        mpiNumberOfStepsPerHour('ClockTimePerStepWOLastStep','Number of steps per hour (Clock time base)'
+                                ,yscalelog)
+
