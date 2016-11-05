@@ -1,0 +1,11 @@
+Function,CPU,Time,CPU,Time:Effective,Time,CPU,Time:Effective,Time:Idle,CPU,Time:Effective,Time:Poor,CPU,Time:Effective,Time:Ok,CPU,Time:Effective,Time:Ideal,CPU,Time:Effective,Time:Over,CPU,Time:Spin,Time,CPU,Time:Spin,Time:Communication,(MPI),CPU,Time:Spin,Time:Other,CPU,Time:Overhead,Time,CPU,Time:Overhead,Time:Other,Module,Function,(Full),Source,File,Start,Address
+PMPI_Allreduce,12.554s,2.240s,0s,2.240s,0s,0s,0s,10.314s,10.284s,0.030s,0s,0s,libmpi.so.12,PMPI_Allreduce,allreduce.c,0xf0ea0,
+PMPI_Waitall,1.570s,0.260s,0s,0.260s,0s,0s,0s,1.310s,1.310s,0s,0s,0s,libmpi.so.12,PMPI_Waitall,waitall.c,0x3d3fd0,
+PMPI_Isend,0.980s,0.970s,0s,0.970s,0s,0s,0s,0.010s,0s,0.010s,0s,0s,libmpi.so.12,PMPI_Isend,isend.c,0x295f70,
+PMPI_Send,0.930s,0.050s,0.010s,0.040s,0s,0s,0s,0.880s,0.520s,0.360s,0s,0s,libmpi.so.12,PMPI_Send,send.c,0x380430,
+PMPI_Recv,0.510s,0s,0s,0s,0s,0s,0s,0.510s,0.490s,0.020s,0s,0s,libmpi.so.12,PMPI_Recv,recv.c,0x355910,
+Foam::DICSmoother::smooth,0.430s,0.430s,0s,0.430s,0s,0s,0s,0s,0s,0s,0s,0s,libOpenFOAM.so,Foam::DICSmoother::smooth(Foam::Field<double>&,,Foam::Field<double>,const&,,unsigned,char,,int),const,[Unknown],0x47c2f0,
+__libc_malloc,0.271s,0.271s,0.011s,0.260s,0s,0s,0s,0s,0s,0s,0s,0s,libc.so.6,__libc_malloc,[Unknown],0x7f830,
+PMPI_Init,0.260s,0.070s,0.030s,0.040s,0s,0s,0s,0.190s,0.190s,0s,0s,0s,libmpi.so.12,PMPI_Init,init.c,0x258200,
+Foam::lduMatrix::Amul,0.250s,0.250s,0s,0.250s,0s,0s,0s,0s,0s,0s,0s,0s,libOpenFOAM.so,Foam::lduMatrix::Amul(Foam::Field<double>&,,Foam::tmp<Foam::Field<double>>,const&,,Foam::FieldField<Foam::Field,,double>,const&,,Foam::UPtrList<Foam::lduInterfaceField,const>,const&,,unsigned,char),const,[Unknown],0x45fc70,
+Foam::lduMatrix::residual,0.230s,0.230s,0s,0.230s,0s,0s,0s,0s,0s,0s,0s,0s,libOpenFOAM.so,Foam::lduMatrix::residual(Foam::Field<double>&,,Foam::Field<double>,const&,,Foam::Field<double>,const&,,Foam::FieldField<Foam::Field,,double>,const&,,Foam::UPtrList<Foam::lduInterfaceField,const>,const&,,unsigned,char),const,[Unknown],0x4625a0,

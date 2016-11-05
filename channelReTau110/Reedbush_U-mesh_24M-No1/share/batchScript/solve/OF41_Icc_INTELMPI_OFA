@@ -16,6 +16,8 @@ module load intel-mpi/5.1.3.210
 export MPI_ROOT=$I_MPI_ROOT
 source ${HOME/\/home/\/lustre}/OpenFOAM/OpenFOAM-4.1/etc/bashrc WM_COMPILER=Icc WM_MPLIB=INTELMPI WM_LABEL_SIZE=32
 export I_MPI_DEBUG=2
+export I_MPI_FALLBACK=disable
+export I_MPI_FABRICS=shm:ofa
 
 # Source tutorial run functions
 . $WM_PROJECT_DIR/bin/tools/RunFunctions

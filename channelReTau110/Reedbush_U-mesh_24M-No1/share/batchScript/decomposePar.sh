@@ -18,10 +18,12 @@ module load openfoam/3.0.1
 
 application=decomposePar.sh
 
+log=log.${application}.${PBS_JOBID}
 (
     env
     decomposePar -cellDist
     rbstat -s ${PBS_JOBID}    
-) >& log.${application}.${PBS_JOBID}
+) >& $log 
 
-touch ${application}.done
+grep "^End" $log >& /dev/null
+[ $? -eq 0 ] && touch ${application}.done

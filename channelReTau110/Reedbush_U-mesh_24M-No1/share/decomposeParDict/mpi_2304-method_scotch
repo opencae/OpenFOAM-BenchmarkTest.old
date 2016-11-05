@@ -14,7 +14,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains  72;
+numberOfSubdomains  2304;
 
 preservePatches ( sides_half0 sides_half1 inout_half0 inout_half1 );
 

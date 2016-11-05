@@ -16,30 +16,12 @@ PCG-DIC
 )
 
 solveBatchArray=(
-OF230_Icc_INTELMPI
-OF230_Icc_SGIMPI
-OF301_Icc_INTELMPI
-OF301_Icc_SGIMPI
-OF41_Gcc_INTELMPI
-OF41_Gcc_OPENMPI
-OF41_Gcc_Optavx2_INTELMPI
-OF41_Gcc_SGIMPI
-OF41_Icc1604_INTELMPI
-OF41_Icc1604_INTELMPI513258
-OF41_Icc1604_OptxHost_INTELMPI
-OF41_Icc1604_OptxHost_INTELMPI513258
-OF41_Icc_INTELMPI
-OF41_Icc_INTELMPI513258
-OF41_Icc_INTELMPI_DC0
-OF41_Icc_INTELMPI_OFA
-OF41_Icc_INTELMPI_UD1
-OF41_Icc_INTELMPI_VTune
-OF41_Icc_INTELMPI_VTuneEBS
 OF41_Icc_OPENMPI
-OF41_Icc_OptxHost_INTELMPI
-OF41_Icc_OptxHost_INTELMPI513258
-OF41_Icc_OptxHost_SGIMPI
+OF41_Icc_INTELMPI
 OF41_Icc_SGIMPI
+OF41_Gcc_OPENMPI
+OF41_Gcc_INTELMPI
+OF41_Gcc_SGIMPI
 )
 
 MAX_NUMBER_OF_LOOP=1
@@ -55,11 +37,11 @@ NPROCS_PER_NODE=36
 
 makeCases()
 {
-    local mx=240
-    local my=130
-    local mz=96
-    local deltaT=0.002
-    local endTime=0.104
+    local mx=480
+    local my=260
+    local mz=192
+    local deltaT=0.001
+    local endTime=0.052
 
     cp -a ../template cases
 
@@ -91,16 +73,24 @@ BatchSubmit()
 
     local GROUP="gz00"
 	
-    if [ $NODE -le 8 ];then	
-	QUEUE="u-lecture"
+    if [ $NODE -le 2 ];then	
+	QUEUE="u-short"
+	WALLTIME="04:00:00"
+    elif [ $NODE -le 16 ];then	
+	QUEUE="u-debug"
 	WALLTIME="00:10:00"
-    	GROUP="gt00"
     elif [ $NODE -le 24 ];then	
 	QUEUE="u-debug"
-	WALLTIME="00:03:00"
-    else
+	WALLTIME="00:10:00"
+    elif [ $NODE -le 32 ];then	
 	QUEUE="u-regular"
-	WALLTIME="00:03:00"
+	WALLTIME="00:05:00"
+    elif [ $NODE -le 64 ];then	
+	QUEUE="u-regular"
+	WALLTIME="00:05:00"
+    elif [ $NODE -le 128 ];then	
+	QUEUE="u-regular"
+	WALLTIME="00:05:00"
     fi
 
 				
@@ -111,4 +101,3 @@ BatchSubmit()
 	-l select=$NODE:ncpus=$NPROCS_PER_NODE:mpiprocs=$NPROCS_PER_NODE:ompthreads=1 \
 	$BATCHFILE
 }
-
