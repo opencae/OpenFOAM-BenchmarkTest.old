@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  2.2.0                                 |
+|  \\    /   O peration     | Version:  4.1                                   |
 |   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -10,31 +10,32 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    location    "system";
     object      fvSolution;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#include        "$FOAM_CASE/caseSettings"
 
 solvers
 {
     p
     {
-        solver           $:fvSolution.solvers.p.solver;
-
-	smoother         $:fvSolution.solvers.p.smoother; // for GAMG
-
-        preconditioner   $:fvSolution.solvers.p.preconditioner; // for PCG
-
-        agglomerator     faceAreaPair;
-	mergeLevels      1;
-        nCellsInCoarsestLevel 100;
-
-        tolerance        1e-6;
 	relTol           0.05;
-
+        tolerance        1e-6;
         maxIter          5000;
+
+        solver           GAMG;
+	smoother         DIC;
+        agglomerator             faceAreaPair;
+        cacheAgglomeration       true;
+	directSolveCoarsest      false;
+        mergeLevels              1;
+        nPreSweeps               0;
+        nPostSweeps              2;
+        nFinestSweeps            2;
+        maxPreSweeps             4;
+        preSweepsLevelMultiplier 1;
+        interpolateCorrection    0;
+        scaleCorrection          1;
+        nCellsInCoarsestLevel    10;
     };
 
     pFinal
@@ -49,7 +50,6 @@ solvers
         preconditioner   DILU;
         tolerance        1e-05;
         relTol           0.1;
-
         maxIter          5000;
     }
 
