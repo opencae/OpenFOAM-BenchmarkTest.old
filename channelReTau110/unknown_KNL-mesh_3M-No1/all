@@ -1,0 +1,56 @@
+decomposeParDictArray=(
+mpi_0032-method_scotch
+mpi_0064-method_scotch
+)
+
+fvSolutionArray=(
+GAMG-DIC
+PCG-DIC
+)
+
+solveBatchArray=(
+OF41_IccKNL_INTELMPI
+)
+
+MAX_NUMBER_OF_LOOP=1
+
+BATCH_PRE=0
+BATCH_DECOMPOSEPAR=0
+BATCH_SOLVE=0
+
+makeCases()
+{
+    local mx=240
+    local my=130
+    local mz=96
+    local deltaT=0.002
+    local endTime=0.104
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+GenerateHostFile()
+{
+  local mpi=$1
+  (
+    i=0
+    while [ $i -lt $mpi ]
+    do
+      echo "localhost" 
+      i=`expr $i + 1`
+    done
+  ) > hostfile
+}
