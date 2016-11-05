@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+mx 240;
+my 130;
+mz 96;
+
+convertToMeters 1;
+
+vertices
+(
+    (0                        0 0                     ) // 0
+    (15.70796326794896619220  0 0                     ) // 1
+    (15.70796326794896619220  2 0                     ) // 2
+    (0                        2 0                     ) // 3
+    (0                        0 6.28318530717958647688) // 4
+    (15.70796326794896619220  0 6.28318530717958647688) // 5
+    (15.70796326794896619220  2 6.28318530717958647688) // 6
+    (0                        2 6.28318530717958647688) // 7
+);
+
+blocks
+(
+      hex (0 1 2 3 4 5 6 7)
+      ($mx $my $mz)
+      simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    bottomWall
+    {
+        type            wall;
+        faces           ((1 5 4 0));
+    }
+    topWall
+    {
+        type            wall;
+        faces           ((2 6 7 3));
+    }
+
+    sides_half0
+    {
+        type            cyclic;
+        neighbourPatch  sides_half1;
+        faces           ((0 3 2 1));
+    }
+    sides_half1
+    {
+        type            cyclic;
+        neighbourPatch  sides_half0;
+        faces           ((4 7 6 5));
+    }
+
+    inout_half0
+    {
+        type            cyclic;
+        neighbourPatch  inout_half1;
+        faces           ((0 4 7 3));
+    }
+    inout_half1
+    {
+        type            cyclic;
+        neighbourPatch  inout_half0;
+        faces           ((1 5 6 2));
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
