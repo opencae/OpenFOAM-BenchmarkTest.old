@@ -3,7 +3,7 @@
 ## General information
 
 * Measurer:  Masashi Imano
-* Data: Oct 30 2016 - Nov 06 2017
+* Data: Oct 30 2016 - Nov 06 2016
 
 ## Benchmark condition
 
