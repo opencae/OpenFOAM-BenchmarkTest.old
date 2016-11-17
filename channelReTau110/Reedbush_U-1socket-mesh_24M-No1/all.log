@@ -1,0 +1,17 @@
+loop= 1
+decomposeParDict= mpi_0018-method_scotch
+mpi= 18
+fvSolution= GAMG-DIC
+dir= cases/mpi_0018-method_scotch/GAMG-DIC
+solveBatch= OF41_Icc_INTELMPI_1socket
+dir= cases/mpi_0018-method_scotch/GAMG-DIC/OF41_Icc_INTELMPI_1socket
+application= pimpleFoam
+ndoneAndQueue = 0 (ndone = 0, nqueue = 0)
+184204.reedbush-pbsadmin0
+fvSolution= PCG-DIC
+dir= cases/mpi_0018-method_scotch/PCG-DIC
+solveBatch= OF41_Icc_INTELMPI_1socket
+dir= cases/mpi_0018-method_scotch/PCG-DIC/OF41_Icc_INTELMPI_1socket
+application= pimpleFoam
+ndoneAndQueue = 0 (ndone = 0, nqueue = 0)
+184205.reedbush-pbsadmin0
