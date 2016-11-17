@@ -1,0 +1,71 @@
+decomposeParDictArray=(
+mpi_0010-method_scotch
+)
+
+fvSolutionArray=(
+GAMG-DIC
+PCG-DIC
+)
+
+solveBatchArray=(
+OF41_Icc_INTELMPI_1socket
+)
+
+MAX_NUMBER_OF_LOOP=1
+
+BATCH_PRE=0
+BATCH_DECOMPOSEPAR=0
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=1
+NAME=OFBench
+
+NPROCS_PER_NODE=10
+
+makeCases()
+{
+    local mx=480
+    local my=260
+    local mz=192
+    local deltaT=0.001
+    local endTime=0.052
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+	qstat | wc -l
+}
+
+BatchSubmit()
+{
+    local BATCHFILE=$1
+    local MPI=$2
+
+    local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+    local QUEUE="regular"
+    local WALLTIME="24:00:00"
+
+    qsub \
+        -N $NAME \
+        -q $QUEUE \
+        -l walltime=$WALLTIME \
+        -l select=$NODE:ncpus=$NPROCS_PER_NODE:mpiprocs=$NPROCS_PER_NODE:ompthreads=1 \
+        $BATCHFILE
+}
+

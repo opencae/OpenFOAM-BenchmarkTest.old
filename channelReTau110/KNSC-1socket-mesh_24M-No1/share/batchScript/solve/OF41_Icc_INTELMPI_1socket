@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ -z ${PBS_O_WORKDIR+x} ]
+then
+    MPI=$1
+    PBS_JOBID=$2
+    PBS_NODEFILE=hostfile
+else
+    cd $PBS_O_WORKDIR
+    MPI=`wc -l < $PBS_NODEFILE`
+fi
+
+module purge;. /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh;. mpsvars.sh --vtune;unset FOAM_INST_DIR;export MPI_ROOT=$I_MPI_ROOT;. $HOME/OpenFOAM/OpenFOAM-4.1/etc/bashrc WM_COMPILER=Icc WM_MPLIB=INTELMPI
+export I_MPI_DEBUG=2
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Get application name
+application=`getApplication`
+
+cat > application.sh  <<EOF
+#!/bin/bash
+module purge;. /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh;. mpsvars.sh --vtune;unset FOAM_INST_DIR;export MPI_ROOT=$I_MPI_ROOT;. $HOME/OpenFOAM/OpenFOAM-4.1/etc/bashrc WM_COMPILER=Icc WM_MPLIB=INTELMPI
+numactl --cpunodebind=0 --membind=0 $application -parallel
+EOF
+
+chmod +x application.sh
+
+log=log.${application}.${PBS_JOBID}
+(
+env
+mpirun -np $MPI -hostfile $PBS_NODEFILE \
+./application.sh 
+) >& $log
+
+grep "^End" $log >& /dev/null
+[ $? -eq 0 ] && touch $log.done
