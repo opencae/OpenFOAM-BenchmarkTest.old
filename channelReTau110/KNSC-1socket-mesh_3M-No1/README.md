@@ -1,4 +1,4 @@
-# KNSC-mesh_3M-No1
+# KNSC-1socket-mesh_3M-No1
 
 ## General information
 
