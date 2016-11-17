@@ -3,12 +3,12 @@
 ## General information
 
 * Measurer:  Masashi Imano
-* Data: Oct 30 2016 - Nov 06 2016
+* Date: Oct 30 2016 - Nov 06 2016
 
 ## Benchmark condition
 
 * Number of mesh：2995200(3M)
-* Number of processos(Number of node)：36(1),72(2),144(4),288(8),576(16),864(24),1152(64),2304(128)
+* Number of processors(Number of node)：36(1),72(2),144(4),288(8),576(16),864(24),1152(64),2304(128)
 
 ## Hardware
 
@@ -20,7 +20,7 @@
   * Memory: 105 TByte
   * Network topology: Full-bisection Fat Tree
 * Node
-  * Name: Product name: SGI Rackable C2112-4GP3
+  * Name: SGI Rackable C2112-4GP3
   * CPU
     * Processor: Intel Xeon E5-2695v4 (Broadwell-EP)
     * Number of Processor(core): 2(36)
