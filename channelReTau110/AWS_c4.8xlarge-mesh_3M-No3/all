@@ -1,0 +1,64 @@
+decomposeParDictArray=(
+"mpi_00018"
+"mpi_00036"
+"mpi_00072"
+"mpi_00108"
+"mpi_00144"
+)
+
+solveBatchArray=(
+"OF230_Gcc_OpenMPI"
+)
+
+fvSolutionArray=(
+"PCG-DIC"
+"GAMG-DIC"
+)
+
+MAX_NUMBER_OF_LOOP=5
+
+BATCH_PRE=1
+BATCH_DECOMPOSEPAR=1
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=1
+
+makeCases()
+{
+    local mx=240
+    local my=130
+    local mz=96
+    local deltaT=0.002
+    local endTime=0.104
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+	nq=`qstat | wc -l`
+	expr $nq - 2
+}
+
+BatchSubmit()
+{
+        # Torque
+	local BATCHFILE=$1
+        local MPI=$2
+
+        local node=`echo "($MPI + 18 - 1)/ 18" | bc`
+	qsub -l nodes=$node:ppn=18 $BATCHFILE
+}
