@@ -16,7 +16,7 @@ HUGE=1e+30
 
 base="all"
 basenameArray=[
-     ['Reedbush-mesh_3M-No0','Reedbush-U', 'y', '-', 's', -1, "open"]
+     ['Reedbush_U-mesh_3M-No0','Reedbush-U', 'y', '-', 's', -1, "open"]
     ,['Oakleaf_FX-mesh_3M-No1','Oakleaf-FX', 'r', '-', 'o', 24, "open"]
     ,['TSUBAME_S-mesh_3M-No1','TSUBAME S', 'c', '-', 'v', -1, "both"]
     ,['TSUBAME_G-mesh_3M-No1','TSUBAME G', 'g', '-', '^', -1, "both"]
