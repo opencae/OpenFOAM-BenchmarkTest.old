@@ -18,6 +18,7 @@ fi
 
 caseDir=cases
 csvFile=$configuration.csv
+decomposeParDictDir=$PWD/share/decomposeParDict
 
 application=`sed -ne 's/^ *application[ \t]*\([a-zA-Z]*\)[ \t]*;.*$/\1/p' cases/system/controlDict`
 
@@ -43,6 +44,8 @@ echo $line > $csvFile
 
 for decomposeParDict in `echo ${decomposeParDictArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
 do
+    decomposeParDictFile=$decomposeParDictDir/$decomposeParDict		
+    method=`grep '^ *method ' $decomposeParDictFile | sed "s/^[ 	]*method[ 	]*\([^ 	]*\);.*/\1/"`
     for fvSolution in `echo ${fvSolutionArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
     do
 	for solveBatch in `echo ${solveBatchArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
@@ -55,8 +58,7 @@ do
 		echo "log= $log"
 		grep "^End" $log >& /dev/null 
 		[ "$?" -ne 0 ] && continue
-		
-		method=`grep '^ *method ' $Dir/system/decomposeParDict | sed "s/.*[ \t]\([^ \t]*\)[ \t]*;.*/\1/"`
+
 		Build=`grep '^Build  *:' $log | sed "s/.*: \(.*\)$/\1/"`
 		Date=`grep '^Date  *:' $log | sed "s/.*: \(.*\)$/\1/"`
 		Time=`grep '^Time  *:'  $log | sed "s/.*: \(.*\)$/\1/"`
@@ -83,7 +85,7 @@ do
                 }' \
 		$log`
 
-		newlog=$Dir/log.${application}.${n}th
+		newlog=$Dir/log.${application}.No${n}
 		    
 		line="${newlog##*/},$decomposeParDict,$method,$fvSolution,$solveBatch"
 		line="$line,$Build,$Date,$Time,$nNodes,$nProcs"
@@ -113,5 +115,5 @@ do
     done
 done
 
-tar jcf $configuration.tar.bz2 $logs
+tar jcf $configuration.tar.bz2 $logs cases/system/controlDict
 rm -f $logs
