@@ -1,0 +1,86 @@
+decomposeParDictArray=(
+  "mpi_00003"
+  "mpi_00006"
+  "mpi_00012"
+  "mpi_00024"
+  "mpi_00036"
+  "mpi_00048"
+  "mpi_00060"
+  "mpi_00072"
+)
+
+solveBatchArray=(
+"OF230_Gcc_OpenMPI"
+)
+
+fvSolutionArray=(
+  "PCG-DIC"
+  "PCG-diagonal"
+  "GAMG-GaussSeidel"
+  "GAMG-Jacobi"
+)
+
+MAX_NUMBER_OF_LOOP=10
+
+BATCH_PRE=1
+BATCH_DECOMPOSEPAR=1
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=20
+
+QUEUE="G"
+
+NAME="$$"
+
+NPROCS_PER_NODE=3
+
+
+makeCases()
+{
+    local mx=240
+    local my=130
+    local mz=96
+    local deltaT=0.002
+    local endTime=0.104
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+	t2stat -a | grep $NAME | grep $QUEUE | wc -l
+}
+
+BatchSubmit()
+{
+	local BATCHFILE=$1
+	local MPI=$2
+
+	if [ "$MPI" -ge 3 ];then
+	    mpiprocs=3
+	else
+	    mpiprocs=$MPI
+	fi
+
+	local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+	t2sub -N $NAME -q $QUEUE
+	    -l walltime=01:00:00
+	    -W group_list=t2g-gsic-kyoyo
+	    -l select=$NODE:mpiprocs=$mpiprocs:ncpus=$mpiprocs:gpus=$mpiprocs:mem=20gb
+	    -l place=scatter
+	    $BATCHFILE
+}
