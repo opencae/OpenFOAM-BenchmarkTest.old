@@ -1,0 +1,76 @@
+decomposeParDictArray=(
+  "mpi_00010"
+  "mpi_00020"
+  "mpi_00040"
+  "mpi_00080"
+  "mpi_00120"
+  "mpi_00160"
+  "mpi_00200"
+  "mpi_00240"
+)
+
+solveBatchArray=(
+"OF230_Gcc_OpenMPI"
+)
+
+fvSolutionArray=(
+  "PCG-DIC"
+  "GAMG-DIC"
+)
+
+MAX_NUMBER_OF_LOOP=10
+
+BATCH_PRE=1
+BATCH_DECOMPOSEPAR=1
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=14
+
+QUEUE="S"
+
+NAME="$$"
+
+NPROCS_PER_NODE=10
+
+makeCases()
+{
+    local mx=240
+    local my=130
+    local mz=96
+    local deltaT=0.002
+    local endTime=0.104
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+	t2stat -a | grep $NAME | grep $QUEUE | wc -l
+}
+
+BatchSubmit()
+{
+	local BATCHFILE=$1
+	local MPI=$2
+
+	local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+	t2sub -N $NAME -q S
+	-l walltime=00:20:00
+	-W group_list=t2g-gsic-kyoyo
+	-l select=$NODE:mpiprocs=$NPROCS_PER_NODE:ncpus=$NPROCS_PER_NODE:mem=40gb
+	-l place=scatter $BATCHFILE
+}
