@@ -1,0 +1,67 @@
+decomposeParDictArray=(
+ "mpi_00016"
+ "mpi_00032"
+ "mpi_00064"
+ "mpi_00128"
+ "mpi_00192"
+ "mpi_00384"
+ "mpi_00768"
+ "mpi_01536"
+)
+
+solveBatchArray=(
+"OF230_Gcc_OpenMPI"
+)
+
+fvSolutionArray=(
+  "PCG-DIC"
+)
+
+MAX_NUMBER_OF_LOOP=5
+
+BATCH_PRE=1
+BATCH_DECOMPOSEPAR=1
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=10
+
+makeCases()
+{
+    local mx=240
+    local my=130
+    local mz=96
+    local deltaT=0.002
+    local endTime=0.104
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+	nq=`pjstat | wc -l`
+	expr $nq - 3
+}
+
+BatchSubmit()
+{
+	local BATCHFILE=$1
+	local MPI=$2
+
+	local node=`echo "($MPI + 16 - 1)/ 16" | bc`
+        local coord=$node
+
+	pjsub -L "node=$coord" --mpi "proc=$MPI" $BATCHFILE
+}
