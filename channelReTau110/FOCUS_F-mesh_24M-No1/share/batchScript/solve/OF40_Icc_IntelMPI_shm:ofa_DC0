@@ -1,0 +1,22 @@
+#!/bin/bash
+
+module purge;module load PrgEnv-intel-15.0.1.133 impi513;unset FOAM_INST_DIR;source $HOME/OpenFOAM/OpenFOAM-4.0/etc/bashrc WM_COMPILER=Icc WM_MPLIB=INTELMPI
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Get application name
+application=$(getApplication)
+
+NODEFILE=`generate_pbs_nodefile`
+cat ${NODEFILE}
+
+export I_MPI_DEBUG=2
+export I_MPI_FABRICS=shm:ofa
+export I_MPI_DYNAMIC_CONNECTION=0
+
+(
+env
+mpirun -np ${SLURM_NTASKS} -machinefile ${NODEFILE} \
+ $(getApplication) -parallel
+) >& log.${application}.${SLURM_JOB_ID}

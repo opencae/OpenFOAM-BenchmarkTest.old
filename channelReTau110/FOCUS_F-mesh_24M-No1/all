@@ -1,0 +1,103 @@
+decomposeParDictArray=(
+ "mpi_00040"
+ "mpi_00080"
+ "mpi_00160"
+ "mpi_00320"
+ "mpi_00400"
+)
+
+fvSolutionArray=(
+  PCG-DIC
+)
+
+solveBatchArray=(
+OF230_Gcc_OpenMPI
+OF230_Icc14_IntelMPI513
+OF230_Icc14_IntelMPI513_DC0
+OF230_Icc14_IntelMPI513_DC0_shm:dapl
+OF230_Icc14_IntelMPI513_DC0_shm:ofa
+OF230_Icc14_IntelMPI513_DC1
+OF230_Icc14_IntelMPI513_DC1_shm:dapl
+OF230_Icc14_IntelMPI513_DC1_shm:ofa
+OF230_Icc14_IntelMPI513_DEBUG2
+OF230_Icc14_IntelMPI513_shm:ofa
+OF230_Icc_IntelMPI
+OF230_Icc_IntelMPI_DEBUG2
+OF40_Icc_IntelMPI_DC0
+OF40_Icc_IntelMPI_DEBUG2
+OF40_Icc_IntelMPI_shm:dapl
+OF40_Icc_IntelMPI_shm:dapl_DC0
+OF40_Icc_IntelMPI_shm:dapl_DC1
+OF40_Icc_IntelMPI_shm:dapl_UD0
+OF40_Icc_IntelMPI_shm:ofa
+OF40_Icc_IntelMPI_shm:ofa_DC1
+OF40_Icc_IntelMPI_tune
+)
+
+MAX_NUMBER_OF_LOOP=1
+
+MAX_NUMBER_OF_QUEUE=60
+
+NAME=OFBench
+
+BATCH_PRE=0
+BATCH_DECOMPOSEPAR=1
+BATCH_SOLVE=1
+
+makeCases()
+{
+    local mx=480
+    local my=260
+    local mz=192
+    local deltaT=0.001
+    local endTime=0.051
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+        squeue | grep $NAME | wc -l
+}
+
+BatchSubmit()
+{
+        local BATCHFILE=$1
+        local MPI=$2
+
+	local QUEUE="f024h"
+	local NPROCS_PER_NODE=40
+	echo $BATCHFILE
+	case $BATCHFILE in
+	decomposePar.sh )
+		QUEUE="h024h"
+		NPROCS_PER_NODE=1
+		;;
+        pre.sh )
+		QUEUE="h024h"
+		NPROCS_PER_NODE=1
+		;;
+        *)
+		QUEUE="f024h"
+		;;
+	esac
+
+        local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+        sbatch -J $NAME$ID -e $NAME.e%J -o $NAME.o%J -p $QUEUE \
+        -n $MPI -N $NODE --tasks-per-node=$NPROCS_PER_NODE -t 480 $BATCHFILE
+}
+
