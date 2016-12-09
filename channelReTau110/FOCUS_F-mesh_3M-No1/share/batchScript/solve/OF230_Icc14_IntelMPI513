@@ -1,0 +1,18 @@
+#!/bin/bash
+
+unset FOAM_INST_DIR;module load PrgEnv-intel-14.0.2.144 impi513;source $HOME/OpenFOAM/2.3.0/intel/intelmpi/OpenFOAM-2.3.0/etc/bashrc
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Get application name
+application=$(getApplication)
+
+NODEFILE=`generate_pbs_nodefile`
+cat ${NODEFILE}
+
+(
+env
+mpirun -np ${SLURM_NTASKS} -machinefile ${NODEFILE} \
+ $(getApplication) -parallel
+) >& log.${application}.${SLURM_JOB_ID}
