@@ -33,6 +33,7 @@ nodeLarge=[1,2,3,4,5,6,7,8,10,12,16,20,24]
 def parser():
     p = argparse.ArgumentParser()
     p.add_argument('csvFilename')
+    p.add_argument('-a','--all', help='plot all data', action='store_true')
     p.add_argument('-m','--maxNumberOfSampling', help='Max number of sampling', type=int, default=1)
     p.add_argument('-L','--lineWidth', help='Line width', type=int, default=2)
     p.add_argument('-M','--markersize', help='Marker size', type=int, default=8)
@@ -60,7 +61,7 @@ def result(basename):
     data=np.genfromtxt("../"+basename[0]+"/"+args.csvFilename, names=True, delimiter=',', dtype=None)
 
     nNodesMax=10e+30
-    if basename[5]>0:
+    if args.all==False and basename[5]>0:
         nNodesMax=basename[5]
     
     idx=np.where(
@@ -396,6 +397,8 @@ def plotInit(subfilename):
     else:
         plotfile=plotfile+'-yscaleLog'
     plotfile=plotfile+'-maxNumberOfSampling_'+str(args.maxNumberOfSampling)
+    if args.all==True:
+        plotfile+="-all"
     plotfile=plotfile+'.pdf'
     print plotfile
     pp=PdfPages(plotfile)
@@ -498,6 +501,9 @@ def plotCPUChargePerTimeStep(args,base,basenameArray,xticksNode,report,year):
 if __name__ == '__main__':
     args=parser()
 
+    if args.all:
+        nodeLarge=[1,2,3,4,5,6,7,8,10,12,16,20,24,32,48,64,96]
+    
     for xscaleLinear in [ False,True ]:
         args.xscaleLinear=xscaleLinear
         for yscaleLinear in [ False,True ]:
