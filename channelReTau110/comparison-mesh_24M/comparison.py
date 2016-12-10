@@ -17,7 +17,7 @@ HUGE=1e+30
 base="all"
 basenameArray=[
      ['Reedbush_U-mesh_24M-No1','Reedbush-U', 'y', '-', 's', 32, "open", "OF230_Icc_SGIMPI"]
-    ,['FOCUS_D-mesh_24M-No1','FOCUS D', "r", '-', 'D', -1, "close", "OF230_Icc_IntelMPI"]
+#    ,['FOCUS_D-mesh_24M-No1','FOCUS D', "r", '-', 'D', -1, "close", "OF230_Icc_IntelMPI"]
     ,['FOCUS_F-mesh_24M-No1','FOCUS F', "b", '-', '>', -1, "close", "OF230_Icc_IntelMPI"]
     ,['FOCUS_H-mesh_24M-No1','FOCUS H', "g", '-', 'H', 8, "close", "OF230_Icc_IntelMPI"]
     ]
