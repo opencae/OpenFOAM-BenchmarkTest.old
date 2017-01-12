@@ -1,0 +1,99 @@
+decomposeParDictArray=(
+mpi_0036-method_scotch
+mpi_0072-method_scotch
+mpi_0144-method_scotch
+mpi_0288-method_scotch
+mpi_0576-method_scotch
+mpi_0864-method_scotch
+mpi_1152-method_scotch
+mpi_2304-method_scotch
+mpi_4608-method_scotch
+)
+
+fvSolutionArray=(
+GAMG-DIC
+PCG-DIC
+)
+
+solveBatchArray=(
+OFv1612+_Gcc_OPENMPI
+OFv1612+_Icc_SGIMPI
+)
+
+MAX_NUMBER_OF_LOOP=1
+
+BATCH_PRE=0
+BATCH_DECOMPOSEPAR=0
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=50
+NAME=OFBench
+
+NPROCS_PER_NODE=36
+
+makeCases()
+{
+    local mx=480
+    local my=260
+    local mz=192
+    local deltaT=0.001
+    local endTime=0.052
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+    rbstat -l | grep "^[0-9]" | wc -l
+}
+
+BatchSubmit()
+{
+    local BATCHFILE=$1
+    local MPI=$2
+
+    local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+    local GROUP="gz00"
+	
+    if [ $NODE -le 2 ];then	
+	QUEUE="u-short"
+	WALLTIME="04:00:00"
+    elif [ $NODE -le 16 ];then	
+	QUEUE="u-debug"
+	WALLTIME="00:10:00"
+    elif [ $NODE -le 24 ];then	
+	QUEUE="u-debug"
+	WALLTIME="00:10:00"
+    elif [ $NODE -le 32 ];then	
+	QUEUE="u-regular"
+	WALLTIME="00:05:00"
+    elif [ $NODE -le 64 ];then	
+	QUEUE="u-regular"
+	WALLTIME="00:05:00"
+    elif [ $NODE -le 128 ];then	
+	QUEUE="u-regular"
+	WALLTIME="00:05:00"
+    fi
+				
+    qsub \
+	-W group_list=$GROUP \
+	-q $QUEUE \
+	-l walltime=$WALLTIME \
+	-l select=$NODE:ncpus=$NPROCS_PER_NODE:mpiprocs=$NPROCS_PER_NODE:ompthreads=1 \
+	$BATCHFILE
+}
+
