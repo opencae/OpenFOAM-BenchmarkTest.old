@@ -18,11 +18,12 @@ LimitNumberOfBatchQueue()
 BatchSubmitAndWait()
 {
     local batchFile=$1
+    local mpi=$2
 
     local batchFileDone=$batchFile.done
     if [ ! -f $batchFileDone ];then
 	LimitNumberOfBatchQueue
-	BatchSubmit $batchFile 1
+	BatchSubmit $batchFile $mpi
 	
 	while [ ! -f $batchFileDone ];do
 	    sleep 1
@@ -94,7 +95,7 @@ done
     cp $preBatchFile $batchFile
     chmod +x $batchFile
     if [ $BATCH_PRE -eq 1 ];then
-	BatchSubmitAndWait $batchFile
+	BatchSubmitAndWait $batchFile 1
     else
 	batchFileDone=$batchFile.done
 	if [ ! -f $batchFileDone ];then
@@ -147,7 +148,7 @@ done
 		    cp $decomposeParBatchFile $batchFile
 		    chmod +x $batchFile
 		    if [ $BATCH_DECOMPOSEPAR -eq 1 ];then
-			BatchSubmitAndWait $batchFile
+			BatchSubmitAndWait $batchFile $mpi
 		    else
 			batchFileDone=$batchFile.done
 			if [ ! -f $batchFileDone ];then
