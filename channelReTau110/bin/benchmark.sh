@@ -186,8 +186,15 @@ done
 
 			    solveBatchFile=$solveBatchScriptDir/$solveBatch
 			    if [ ! -f  $solveBatchFile ];then
-				echo "Cannot find $solveBatchFile. Skip running"
-				continue
+				echo "Cannot find $solveBatchFile."
+				templateFile=$solveBatchScriptDir/template
+				if [ -f $templateFile ];then
+				    echo "Copy template file."
+				    cp -a $templateFile $solveBatchFile 
+				else
+				    echo "Cannot find $templateFile. Skip running"
+				    continue
+				fi
 			    fi
 
 			    if [ ! -d $solveBatch ];then
