@@ -65,8 +65,6 @@ def plotMpiInit(title,subfilename):
     else:
         plotfile=plotfile+'-yscaleLog'
     plotfile=plotfile+'-maxNumberOfSampling_'+str(args.maxNumberOfSampling)
-    if args.batchFileName!=None:
-        plotfile=plotfile+'-'+'-'.join(args.batchFileNameList)
     plotfile=plotfile+'.pdf'
     print plotfile
     pp=PdfPages(plotfile)
