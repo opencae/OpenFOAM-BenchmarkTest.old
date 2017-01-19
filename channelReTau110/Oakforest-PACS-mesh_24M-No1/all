@@ -13,10 +13,10 @@ PCG-DIC
 )
 
 solveBatchArray=(
-v1612+_system_Icc_INTELMPI_1
-v1612+_system_IccKNL_INTELMPI_1
-v1612+_ThirdParty_Gcc_INTELMPI_1
-v1612+_ThirdParty_GccKNL_INTELMPI_1
+v1612+_system_Icc_INTELMPI_3
+v1612+_system_IccKNL_INTELMPI_3
+v1612+_ThirdParty_Gcc_INTELMPI_3
+v1612+_ThirdParty_GccKNL_INTELMPI_3
 )
 
 MAX_NUMBER_OF_LOOP=1
