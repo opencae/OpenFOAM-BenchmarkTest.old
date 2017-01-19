@@ -105,5 +105,6 @@ command="mpirun $NUMACTL_COMMAND $application -parallel"
 echo $command >> $log 2>&1
 $command >> $log 2>&1
 grep "^End" $log >& /dev/null && touch $batchFileDone
+pjstat -s ${PJM_JOBID}
 
 #------------------------------------------------------------------------------
