@@ -33,7 +33,8 @@ env > $log 2>&1
 if [ $mpi -eq 1 ];then
     decomposePar >> $log 2>&1
 else
-    mpirun redistributePar -decompose -parallel >> $log 2>&1 
+    unset FOAM_SIGFPE
+    mpirun redistributePar -overwrite -decompose -parallel >> $log 2>&1 
 fi
 grep "^End" $log >& /dev/null && touch $batchFileDone
 
