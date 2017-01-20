@@ -1,0 +1,129 @@
+decomposeParDictArray=(
+mpi_000064-method_scotch
+mpi_000128-method_scotch
+mpi_000192-method_scotch
+mpi_000256-method_scotch
+mpi_000320-method_scotch
+mpi_000384-method_scotch
+mpi_000448-method_scotch
+mpi_000512-method_scotch
+mpi_000768-method_scotch
+mpi_001024-method_scotch
+mpi_002048-method_scotch
+mpi_004096-method_scotch
+mpi_008192-method_scotch
+mpi_016384-method_scotch
+mpi_032768-method_scotch
+mpi_065536-method_scotch
+mpi_131072-method_scotch
+)
+
+fvSolutionArray=(
+GAMG-DIC
+PCG-DIC
+)
+[ "$PJM_RSCGRP" = "prepost" ] && fvSolutionArray=()
+
+solveBatchArray=(
+v1612+_system_Icc_INTELMPI_256_cache_0
+v1612+_system_IccKNL_INTELMPI_256_cache_0
+v1612+_ThirdParty_Gcc_INTELMPI_256_cache_0
+v1612+_ThirdParty_GccKNL_INTELMPI_256_cache_0
+v1612+_system_Icc_INTELMPI_256_flat_3
+v1612+_system_IccKNL_INTELMPI_256_flat_3
+v1612+_ThirdParty_Gcc_INTELMPI_256_flat_3
+v1612+_ThirdParty_GccKNL_INTELMPI_256_flat_3
+v1612+_system_Icc_INTELMPI_128_cache_0
+v1612+_system_IccKNL_INTELMPI_128_cache_0
+v1612+_ThirdParty_Gcc_INTELMPI_128_cache_0
+v1612+_ThirdParty_GccKNL_INTELMPI_128_cache_0
+v1612+_system_Icc_INTELMPI_128_flat_3
+v1612+_system_IccKNL_INTELMPI_128_flat_3
+v1612+_ThirdParty_Gcc_INTELMPI_128_flat_3
+v1612+_ThirdParty_GccKNL_INTELMPI_128_flat_3
+v1612+_system_Icc_INTELMPI_64_cache_0
+v1612+_system_IccKNL_INTELMPI_64_cache_0
+v1612+_ThirdParty_Gcc_INTELMPI_64_cache_0
+v1612+_ThirdParty_GccKNL_INTELMPI_64_cache_0
+v1612+_system_Icc_INTELMPI_64_flat_3
+v1612+_system_IccKNL_INTELMPI_64_flat_3
+v1612+_ThirdParty_Gcc_INTELMPI_64_flat_3
+v1612+_ThirdParty_GccKNL_INTELMPI_64_flat_3
+)
+
+BATCH_PRE=1
+BATCH_DECOMPOSEPAR=1
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_LOOP=1
+
+MAX_NUMBER_OF_QUEUE=90
+NAME=OFBench
+
+GROUP=${PROJECT}
+WALLTIME=2:00:00
+
+makeCases()
+{
+    local mx=480
+    local my=260
+    local mz=192
+    local deltaT=0.001
+    local endTime=0.052
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+    pjstat -l | grep "^[0-9]" | wc -l
+}
+
+BatchSubmit()
+{
+    local BATCHFILE=$1
+    local MPI=$2
+
+    echo "BATCHFILE: $BATCHFILE" 
+    echo "MPI: $MPI" 
+
+    if [ "$PJM_ENVIRONMENT" = "INTERACT" ]; then
+    	if [ "$BATCHFILE" = "decomposePar.sh" ];then
+	    ./$BATCHFILE &
+	    touch ${BATCHFILE}.done
+	else
+	    ./$BATCHFILE
+	fi
+   else
+        local NPROCS_PER_NODE=`echo $BATCHFILE | cut  -d "_"  -f 5`
+	echo "NPROCS_PER_NODE: $NPROCS_PER_NODE" 
+        local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+	echo "NODE: $NODE" 
+	local MPI_TMP=`echo "$NODE * $NPROCS_PER_NODE" | bc`
+	echo "NODE * NPROCS_PER_NODE: $MPI_TMP"
+        if [ $MPI -ne $MPI_TMP ];then
+	  echo "Number of MPI is mismatch. Skip running."
+  	  return 0
+	fi  
+
+        local RAM_MODE=`echo $BATCHFILE | cut  -d "_"  -f 6`
+	local QUEUE=regular-$RAM_MODE
+
+	command="pjsub -X -g ${GROUP} -L rscgrp=${QUEUE},node=${NODE},elapse=${WALLTIME} --mpi proc=${MPI} ${BATCHFILE}"
+        echo $command
+	$command
+    fi
+}
