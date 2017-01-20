@@ -1,0 +1,75 @@
+decomposeParDictArray=(
+mpi_0256-method_scotch
+mpi_0128-method_scotch
+mpi_0064-method_scotch
+mpi_0032-method_scotch
+mpi_0016-method_scotch
+mpi_0008-method_scotch
+)
+
+fvSolutionArray=(
+GAMG-DIC
+PCG-DIC
+)
+
+solveBatchArray=(
+v1612+_system_Icc_INTELMPI_0
+v1612+_system_IccKNL_INTELMPI_0
+v1612+_ThirdParty_Gcc_INTELMPI_0
+v1612+_ThirdParty_GccKNL_INTELMPI_0
+)
+
+MAX_NUMBER_OF_LOOP=1
+
+BATCH_PRE=1
+BATCH_DECOMPOSEPAR=0
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=100
+NAME=OFBench
+
+GROUP=${PROJECT}
+QUEUE=regular-cache
+WALLTIME=48:00:00
+NPROCS_PER_NODE=272
+
+makeCases()
+{
+    local mx=480
+    local my=260
+    local mz=192
+    local deltaT=0.001
+    local endTime=0.052
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+}
+
+NumberOfBatchQueue()
+{
+    pjstat -l | grep "^[0-9]" | wc -l
+}
+
+BatchSubmit()
+{
+    local BATCHFILE=$1
+    local MPI=$2
+
+    local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+    command="pjsub -X -g ${GROUP} -L rscgrp=${QUEUE},node=${NODE},elapse=${WALLTIME} --mpi proc=${MPI} ${BATCHFILE}"
+    echo $command
+    $command
+}
