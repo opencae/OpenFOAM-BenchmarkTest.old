@@ -1,0 +1,112 @@
+#!/bin/bash
+
+if [ -z "${PJM_JOBID+x}" ] ; then
+    PJM_JOBID=$1
+else
+    export HOME=/work/$(id -gn)/$(id -un)
+    cd $PJM_O_WORKDIR
+fi
+
+VERSION=`echo $PJM_JOBNAME | cut  -d "_"  -f 1`
+COMPILER_TYPE=`echo $PJM_JOBNAME | cut  -d "_"  -f 2`
+COMPILER=`echo $PJM_JOBNAME | cut  -d "_"  -f 3`
+MPLIB=`echo $PJM_JOBNAME | cut  -d "_"  -f 4`
+PPN=`echo $PJM_JOBNAME | cut  -d "_"  -f 5`
+RAM_MODE=`echo $PJM_JOBNAME | cut  -d "_"  -f 6`
+CASE=`echo $PJM_JOBNAME | cut  -d "_"  -f 7`
+
+module purge
+case "$COMPILER" in
+    Gcc*)
+	module load gcc/4.8.5
+	;;
+    Clang*)
+	module load gcc/4.8.5
+	;;
+    Icc*)
+	module load intel/2017.1.132
+	;;
+    *)
+	echo "Unknown compiler $COMPILER"
+	exit 1
+	;;
+esac
+
+module unload impi
+case "$MPLIB" in
+    INTELMPI)
+	module load impi/2017.1.132
+	export MPI_ROOT=$I_MPI_ROOT
+	export I_MPI_DEBUG=5
+	;;
+    *)
+	echo "Unknown MPI library $MPLIB"
+	exit 1
+	;;
+esac
+
+case "$CASE" in
+    0)
+	NUMACTL_COMMAND=""
+	;;
+    1)
+	export I_MPI_PIN_PROCESSOR_EXCLUDE_LIST=0,68,136,204
+	NUMACTL_COMMAND="numactl --membind=1"
+	;;
+    2)
+	export I_MPI_PIN_PROCESSOR_EXCLUDE_LIST=0,68,136,204
+	NUMACTL_COMMAND="numactl --membind=0"
+	;;
+    3)
+	export I_MPI_PIN_PROCESSOR_EXCLUDE_LIST=0,68,136,204
+	NUMACTL_COMMAND="numactl --preferred=1"
+	;;
+    4)
+	export I_MPI_PIN_PROCESSOR_EXCLUDE_LIST=0,68,136,204
+	NUMACTL_COMMAND="numactl --preferred=0"
+	;;
+    5)
+	NUMACTL_COMMAND="numactl --membind=1"
+	;;
+    6)
+	NUMACTL_COMMAND="numactl --membind=0"
+	;;
+    7)
+	NUMACTL_COMMAND="numactl --preferred=1"
+	;;
+    8)
+	NUMACTL_COMMAND="numactl --preferred=0"
+	;;
+    *)
+	echo "Unknown case $CASE"
+	exit 1
+	;;
+esac
+
+foamBashrc="\
+${HOME}/OpenFOAM/OpenFOAM-${VERSION}/etc/bashrc \
+WM_COMPILER_TYPE=$COMPILER_TYPE \
+WM_COMPILER=$COMPILER \
+WM_MPLIB=$MPLIB \
+WM_LABEL_SIZE=32"
+echo "source $foamBashrc"
+. $foamBashrc
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Application name
+application=`getApplication`
+
+# Log file
+log=log.${application}.${PJM_JOBID}
+batchFileDone=${log}.done
+
+env > $log 2>&1
+command="mpirun $NUMACTL_COMMAND $application -parallel"
+echo $command >> $log 2>&1
+$command >> $log 2>&1
+grep "^End" $log >& /dev/null && touch $batchFileDone
+pjstat -s ${PJM_JOBID}
+
+#------------------------------------------------------------------------------

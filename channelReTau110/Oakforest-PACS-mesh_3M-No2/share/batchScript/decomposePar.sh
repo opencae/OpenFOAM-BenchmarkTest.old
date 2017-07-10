@@ -20,8 +20,10 @@ fi
 module purge
 module load gcc/4.8.5
 module unload impi
-#module load impi/2017.1.132
-#export MPI_ROOT=$I_MPI_ROOT
+if [ "$MPLIB" = "INTELMPI" ];then
+    module load impi/2017.1.132
+    export MPI_ROOT=$I_MPI_ROOT
+fi
 export I_MPI_DEBUG=5
 . ${HOME}/OpenFOAM/OpenFOAM-v1612+/etc/bashrc \
     WM_COMPILER_TYPE=ThirdParty \
