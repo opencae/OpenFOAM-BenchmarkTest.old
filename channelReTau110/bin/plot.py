@@ -8,18 +8,29 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import csv
 import math
 
 def parser():
     p = argparse.ArgumentParser()
     p.add_argument('csvFilename')
+    p.add_argument('-a','--all', help='plot all', action='store_true')
+    p.add_argument('--loop', action='store_true')
+    p.add_argument('--LOOP', action='store_true')
+    p.add_argument('--sph', action='store_true')
+    p.add_argument('--SPH', action='store_true')
+    p.add_argument('--pe', action='store_true')
+    p.add_argument('--PE', action='store_true')
+    p.add_argument('--first', action='store_true')
+    p.add_argument('--FIRST', action='store_true')
+    p.add_argument('--solution', action='store_true')
+    p.add_argument('--SOLUTION', action='store_true')
+    p.add_argument('-l','--labelName', help='Label name list', type=str, nargs='+', required=False)
     p.add_argument('-b','--batchFileName', help='Batch file name list', type=str, nargs='+', required=False)
     p.add_argument('-m','--maxNumberOfSampling', help='Max number of sampling', type=int, default=1)
-    p.add_argument('-L','--lineWidth', help='Line width', type=int, default=2)
+    p.add_argument('-L','--lineWidth', help='Line width', type=float, default=1.5)
     p.add_argument('-w','--widthOfXticks'
-                   , help='Width of xticks in solver-ExecutionTimePerStep plot', type=int, default=20)
+                   , help='Width of xticks in solver-ExecutionTimePerStep plot', type=int, default=15)
     p.add_argument('-x','--xscaleLinear'
                    , help='x scale Linear', action='store_true')
     p.add_argument('-y','--yscaleLinear'
@@ -39,7 +50,7 @@ def parser():
     p.add_argument('--topFractionSolver'
                    , help='Top faction in solver-* plot', type=float, default=0.95)
     p.add_argument('--bottomFractionSolver'
-                   , help='Bottom faction in solver-* plot', type=float, default=0.2)
+                   , help='Bottom faction in solver-* plot', type=float, default=0.35)
     p.add_argument('--topFractionMpi'
                    , help='Top faction in mpi-* plot', type=float, default=0.95)
     p.add_argument('--bottomFractionMpi'
@@ -65,13 +76,12 @@ def plotMpiInit(title,subfilename):
     else:
         plotfile=plotfile+'-yscaleLog'
     plotfile=plotfile+'-maxNumberOfSampling_'+str(args.maxNumberOfSampling)
-    plotfile=plotfile+'.pdf'
+    plotfile=plotfile+'.eps'
     print plotfile
-    pp=PdfPages(plotfile)
     plt.title(title, fontsize=args.titleFontSize)
-    return pp
+    return plotfile
 
-def plotMpi(args,pp,mpi,ylabel):
+def plotMpi(args,plotfile,mpi,ylabel):
     plt.subplots_adjust(top=args.topFractionMpi,bottom=args.bottomFractionMpi)
     plt.grid()
     plt.tick_params(labelsize=args.tickFontSize)
@@ -99,19 +109,20 @@ def plotMpi(args,pp,mpi,ylabel):
 
     return xmin,xmax,ymin,ymax
 
-def plotEnd(pp):
+def plotEnd(plotfile):
     plt.legend(loc='best', prop={'size':args.legendFontSize})
-    pp.savefig()
+    plt.savefig(plotfile)
     plt.clf()
-    pp.close()
 
 def solverExecutionTimePerStep(args,data,column,ylabel):
     for decomposeParDict in np.unique(data['decomposeParDict']):
         title=decomposeParDict
         subfilename='-'+column
-        pp=plotMpiInit(title,subfilename)
+        plotfile=plotMpiInit(title,subfilename)
 
-        for batchFileName in args.batchFileNameList:
+        for bFNI in range(len(args.batchFileNameList)):
+            batchFileName=args.batchFileNameList[bFNI]
+            labelName=args.labelNameList[bFNI]
             idx=np.where(
                 (data['decomposeParDict']==decomposeParDict)
                 & (data['solveBatch']==batchFileName)
@@ -143,10 +154,10 @@ def solverExecutionTimePerStep(args,data,column,ylabel):
                     ExecutionTimeSTD[i]=np.std(ExecutionTime)
             
             if args.maxNumberOfSampling>1:
-                plt.errorbar(x, ExecutionTimeAve, yerr=ExecutionTimeSTD, label=batchFileName\
+                plt.errorbar(x, ExecutionTimeAve, yerr=ExecutionTimeSTD, label=labelName\
                              , linewidth=args.lineWidth)
             else:
-                plt.plot(x, ExecutionTimeAve, label=batchFileName, linewidth=args.lineWidth)
+                plt.plot(x, ExecutionTimeAve, label=labelName, linewidth=args.lineWidth)
 
         plt.subplots_adjust(top=args.topFractionSolver,bottom=args.bottomFractionSolver)
         plt.legend(loc='best', prop={'size':args.legendFontSize})
@@ -157,7 +168,7 @@ def solverExecutionTimePerStep(args,data,column,ylabel):
         snTicks=[]
         for snI in sn:
             snTicks.append('\n'.join(
-                    textwrap.wrap(snI,width=args.widthOfXticks, subsequent_indent="  ")))
+                    textwrap.wrap(snI,width=args.widthOfXticks, subsequent_indent=" ")))
         plt.xticks(x,snTicks, rotation=args.rotation)
  
         plt.tick_params(axis='x', labelsize=args.solverTickFontSize)
@@ -175,18 +186,17 @@ def solverExecutionTimePerStep(args,data,column,ylabel):
             plt.yscale('log')
             ymin, ymax = plt.ylim()
         plt.ylim(ymin, ymax)
-
-        pp.savefig()
-        plt.clf()
-        pp.close()
+        plotEnd(plotfile)
 
 def mpiFirstExecutionTimePerStep(args,data,column,ylabel):
     for solver in np.unique(data['fvSolution']):
         for method in np.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-1stTime-'+column
-            pp=plotMpiInit(title,subfilename)
-            for batchFileName in args.batchFileNameList:
+            plotfile=plotMpiInit(title,subfilename)
+            for bFNI in range(len(args.batchFileNameList)):
+                batchFileName=args.batchFileNameList[bFNI]
+                labelName=args.labelNameList[bFNI]
                 idx=np.where(
                     (data['method']==method)
                     & (data['fvSolution']==solver)
@@ -214,22 +224,24 @@ def mpiFirstExecutionTimePerStep(args,data,column,ylabel):
                     ExecutionTimeFirstStepSTD[i]=np.std(ExecutionTimeFS)
 
                 if args.maxNumberOfSampling>1:
-                    plt.errorbar(mpi, ExecutionTimeFirstStepAve, yerr=ExecutionTimeFirstStepSTD, label=batchFileName\
+                    plt.errorbar(mpi, ExecutionTimeFirstStepAve, yerr=ExecutionTimeFirstStepSTD, label=labelName\
                                  , linewidth=args.lineWidth)
                 else:
-                    plt.plot(mpi, ExecutionTimeFirstStepAve, label=batchFileName, linewidth=args.lineWidth)
+                    plt.plot(mpi, ExecutionTimeFirstStepAve, label=labelName, linewidth=args.lineWidth)
 
             mpi = np.unique(data['nProcs'])
-            xmin,xmax,ymin,ymax=plotMpi(args,pp,mpi,ylabel)
-            plotEnd(pp)
+            xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
+            plotEnd(plotfile)
 
 def mpiExecutionTimePerStep(args,data,column,ylabel):
     for solver in np.unique(data['fvSolution']):
         for method in np.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-loopTime-'+column
-            pp=plotMpiInit(title,subfilename)
-            for batchFileName in args.batchFileNameList:
+            plotfile=plotMpiInit(title,subfilename)
+            for bFNI in range(len(args.batchFileNameList)):
+                batchFileName=args.batchFileNameList[bFNI]
+                labelName=args.labelNameList[bFNI]
                 idx=np.where(
                     (data['method']==method)
                     & (data['fvSolution']==solver)
@@ -257,26 +269,28 @@ def mpiExecutionTimePerStep(args,data,column,ylabel):
                     ExecutionTimeSTD[i]=np.std(ExecutionTime)
 
                 if args.maxNumberOfSampling>1:
-                    plt.errorbar(mpi, ExecutionTimeAve, yerr=ExecutionTimeSTD, label=batchFileName\
+                    plt.errorbar(mpi, ExecutionTimeAve, yerr=ExecutionTimeSTD, label=labelName\
                                  , linewidth=args.lineWidth)
                 else:
-                    plt.plot(mpi, ExecutionTimeAve, label=batchFileName,linewidth=args.lineWidth)
+                    plt.plot(mpi, ExecutionTimeAve, label=labelName,linewidth=args.lineWidth)
 
                 rBase=ExecutionTimeAve[0]*mpi[0]
 
             mpi = np.unique(data['nProcs'])
-            xmin,xmax,ymin,ymax=plotMpi(args,pp,mpi,ylabel)
+            xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
             if not args.yscaleLinear:
                 plt.plot([xmin, xmax], [rBase/xmin, rBase/xmax], 'k-', label="Ideal", linewidth=args.lineWidth)
-            plotEnd(pp)
+            plotEnd(plotfile)
 
 def mpiNumberOfStepsPerHour(args,data,column,ylabel):
     for solver in np.unique(data['fvSolution']):
         for method in np.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-sph-'+column
-            pp=plotMpiInit(title,subfilename)
-            for batchFileName in args.batchFileNameList:
+            plotfile=plotMpiInit(title,subfilename)
+            for bFNI in range(len(args.batchFileNameList)):
+                batchFileName=args.batchFileNameList[bFNI]
+                labelName=args.labelNameList[bFNI]
                 idx=np.where(
                     (data['method']==method)
                     & (data['fvSolution']==solver)
@@ -309,25 +323,27 @@ def mpiNumberOfStepsPerHour(args,data,column,ylabel):
 
                 if args.maxNumberOfSampling>1:
                     plt.errorbar(mpi, numberOfStepsPerHourAve, yerr=numberOfStepsPerHourSTD
-                                 , label=batchFileName, linewidth=args.lineWidth)
+                                 , label=labelName, linewidth=args.lineWidth)
                 else:
-                    plt.plot(mpi, numberOfStepsPerHourAve, label=batchFileName, linewidth=args.lineWidth)
+                    plt.plot(mpi, numberOfStepsPerHourAve, label=labelName, linewidth=args.lineWidth)
 
                 rBase=numberOfStepsPerHourAve[0]/mpi[0]
 
             mpi = np.unique(data['nProcs'])
-            xmin,xmax,ymin,ymax=plotMpi(args,pp,mpi,ylabel)
+            xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
             if not args.yscaleLinear:
                 plt.plot([xmin, xmax], [xmin*rBase, xmax*rBase], 'k-', label="Ideal", linewidth=args.lineWidth)
-            plotEnd(pp)
+            plotEnd(plotfile)
 
 def mpiParallelEfficiency(args,data,column,ylabel):
     for solver in np.unique(data['fvSolution']):
         for method in np.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-pe-'+column
-            pp=plotMpiInit(title,subfilename)
-            for batchFileName in args.batchFileNameList:
+            plotfile=plotMpiInit(title,subfilename)
+            for bFNI in range(len(args.batchFileNameList)):
+                batchFileName=args.batchFileNameList[bFNI]
+                labelName=args.labelNameList[bFNI]
                 idx=np.where(
                     (data['method']==method)
                     & (data['fvSolution']==solver)
@@ -359,15 +375,15 @@ def mpiParallelEfficiency(args,data,column,ylabel):
                 ExecutionTimePEAve=ExecutionTimeAve[0]/ExecutionTimeAve/(mpi/mpi[0])*100.0
 
                 if args.maxNumberOfSampling>1:
-                    plt.errorbar(mpi, ExecutionTimePEAve, yerr=ExecutionTimePESTD, label=batchFileName\
+                    plt.errorbar(mpi, ExecutionTimePEAve, yerr=ExecutionTimePESTD, label=labelName\
                                  , linewidth=args.lineWidth)
                 else:
-                    plt.plot(mpi, ExecutionTimePEAve, label=batchFileName, linewidth=args.lineWidth)
+                    plt.plot(mpi, ExecutionTimePEAve, label=labelName, linewidth=args.lineWidth)
 
             mpi = np.unique(data['nProcs'])
-            xmin,xmax,ymin,ymax=plotMpi(args,pp,mpi,ylabel)
+            xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
             plt.plot([xmin, xmax], [100, 100], 'k-', label="Ideal", linewidth=args.lineWidth)
-            plotEnd(pp)
+            plotEnd(plotfile)
 
 if __name__ == '__main__':
     args=parser()
@@ -378,28 +394,48 @@ if __name__ == '__main__':
         args.batchFileNameList=np.unique(data['solveBatch'])
     else:
         args.batchFileNameList=args.batchFileName
+
+    if args.labelName==None:
+        args.labelNameList=args.batchFileNameList
+    else:
+        args.labelNameList=args.labelName
         
     if len(np.unique(data['nProcs']))>1:
-        mpiExecutionTimePerStep(args, data, args.ExecutionTimePerStep
-                                ,'Execution time per time step [s]')
-        mpiExecutionTimePerStep(args, data, args.ClockTimePerStep
-                                ,'Clock time per time step [s]')
-        mpiNumberOfStepsPerHour(args, data, args.ExecutionTimePerStep
-                                ,'Number of steps per hour (Execution time base)')
-        mpiNumberOfStepsPerHour(args, data, args.ClockTimePerStep
-                                ,'Number of steps per hour (Clock time base)')
-        mpiParallelEfficiency(args, data, args.ExecutionTimePerStep
-                              ,'Parallel efficiency [%] (Execution time base)')
-        mpiParallelEfficiency(args, data, args.ClockTimePerStep
-                              ,'Parallel efficiency [%] (Clock time base)')
-        mpiFirstExecutionTimePerStep(args, data, args.ExecutionTimeFirstStep
-                                     ,'Execution time to complete 1st time step [s]')
-        mpiFirstExecutionTimePerStep(args, data, args.ClockTimeFirstStep
-                                     ,'Clock time to complete 1st time step [s]')
+        if args.all or args.loop:
+            mpiExecutionTimePerStep(args, data, args.ExecutionTimePerStep
+                                    ,'Execution time per time step [s]')
+        if args.all or args.LOOP:
+            mpiExecutionTimePerStep(args, data, args.ClockTimePerStep
+                                    ,'Clock time per time step [s]')
+        if args.all or args.sph:
+            mpiNumberOfStepsPerHour(args, data, args.ExecutionTimePerStep
+                                    ,'Number of steps per hour (Execution time base)')
+        if args.all or args.SPH:
+            mpiNumberOfStepsPerHour(args, data, args.ClockTimePerStep
+                                    ,'Number of steps per hour (Clock time base)')
+        if args.all or args.pe:
+            mpiParallelEfficiency(args, data, args.ExecutionTimePerStep
+                                  ,'Parallel efficiency [%] (Execution time base)')
+        if args.all or args.PE:
+            mpiParallelEfficiency(args, data, args.ClockTimePerStep
+                                  ,'Parallel efficiency [%] (Clock time base)')
+        if args.all or args.first:
+            mpiFirstExecutionTimePerStep(args, data, args.ExecutionTimeFirstStep
+                                         ,'Execution time to complete 1st time step [s]')
+        if args.all or args.FIRST:
+            mpiFirstExecutionTimePerStep(args, data, args.ClockTimeFirstStep
+                                         ,'Clock time to complete 1st time step [s]')
 
 
     if len(np.unique(data['fvSolution']))>1:
-        solverExecutionTimePerStep(args, data, args.ExecutionTimePerStep
-                                   ,'Execution time per time step [s]')
-        solverExecutionTimePerStep(args, data, args.ClockTimePerStep
-                                   ,'Clock time per time step [s]')
+        if args.all or args.solution:
+            solverExecutionTimePerStep(args, data, args.ExecutionTimePerStep
+                                       ,'Execution time per time step [s]')
+        if args.all or args.SOLUTION:
+            solverExecutionTimePerStep(args, data, args.ClockTimePerStep
+                                       ,'Clock time per time step [s]')
+
+    fdone=open(args.csvFilename+'_plot.py_done','w')
+    fdone.write('')
+    fdone.close
+
