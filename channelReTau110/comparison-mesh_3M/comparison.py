@@ -16,7 +16,8 @@ HUGE=1e+30
 
 base="all"
 basenameArray=[
-     ['Reedbush_U-mesh_3M-No0','Reedbush-U', 'y', '-', 's', -1, "open"]
+    ['Oakforest-PACS-mesh_3M-No2','Oakforest-PACS', 'b', '-', 's', -1, "open"]
+    ,['Reedbush_U-mesh_3M-No0','Reedbush-U', 'y', '-', 's', -1, "open"]
     ,['Oakleaf_FX-mesh_3M-No1','Oakleaf-FX', 'r', '-', 'o', 24, "open"]
     ,['TSUBAME_S-mesh_3M-No1','TSUBAME S', 'c', '-', 'v', -1, "both"]
     ,['TSUBAME_G-mesh_3M-No1','TSUBAME G', 'g', '-', '^', -1, "both"]
@@ -66,7 +67,7 @@ def result(basename):
     
     idx=np.where(
         (data['fvSolution']=='PCG-DIC')
-        & (data['solveBatch']=='OF230_Gcc_OpenMPI')
+        & ( (data['solveBatch']=='OF230_Gcc_OpenMPI')| (data['solveBatch']=='v1612+_system_IccKNL_INTELMPI_64_flat_1'))
         & (data['nNodes']<=nNodesMax)
         )
 
@@ -277,6 +278,10 @@ def charge(basename,node,report,year):
     elif basename[1] == "Reedbush-U":
         chargePerTime=[0,0]
         chargePerNodeTime=[62000/2880]
+
+    elif basename[1] == "Oakforest-PACS":
+        chargePerTime=[0,0]
+        chargePerNodeTime=[100000/17280*1.2]
 
     elif basename[1] == "TSUBAME S" or basename[1] =="TSUBAME G":
         if basename[1] == "TSUBAME G":
@@ -502,7 +507,7 @@ if __name__ == '__main__':
     args=parser()
 
     if args.all:
-        nodeLarge=[1,2,3,4,5,6,7,8,10,12,16,20,24,32,48,64,96]
+        nodeLarge=[1,2,3,4,5,6,7,8,10,12,16,20,24,32,48,64,96,128,256,512]
     
     for xscaleLinear in [ False,True ]:
         args.xscaleLinear=xscaleLinear
@@ -510,8 +515,7 @@ if __name__ == '__main__':
             args.yscaleLinear=yscaleLinear
             plotNumberOfTimeStepPerHour(args,base,basenameArray,nodeLarge)
             plotParallelEfficiency(args,base,basenameArray,nodeLarge)
-            for year in ['FYH28','FYH29']:
+            for year in ['FYH29']:
                 for report in ['close', 'open']:
                     plotCPUChargePerTimeStep(args, base,basenameArray,nodeLarge,report,year)
                     plotCPUChargePerHourVsNumberOfTimesStepPerHour(args,base,basenameArray,report,year)
-
