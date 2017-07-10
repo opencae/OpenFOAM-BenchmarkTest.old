@@ -16,10 +16,10 @@ HUGE=1e+30
 
 base="all"
 basenameArray=[
-     ['Reedbush_U-mesh_24M-No1','Reedbush-U', 'y', '-', 's', 32, "open", "OF230_Icc_SGIMPI"]
-#    ,['FOCUS_D-mesh_24M-No1','FOCUS D', "r", '-', 'D', -1, "close", "OF230_Icc_IntelMPI"]
-    ,['FOCUS_F-mesh_24M-No1','FOCUS F', "b", '-', '>', -1, "close", "OF230_Icc_IntelMPI"]
-    ,['FOCUS_H-mesh_24M-No1','FOCUS H', "g", '-', 'H', 8, "close", "OF230_Icc_IntelMPI"]
+     ['Oakforest-PACS-mesh_24M-No2','Oakforest-PACS', 'b', '-', 's', -1, "open", "v1612+_system_IccKNL_INTELMPI_64_cache_0"]
+     ,['Reedbush_U-mesh_24M-No1','Reedbush-U', 'y', '-', 's', -1, "open", "OF230_Icc_SGIMPI"]
+    ,['FOCUS_F-mesh_24M-No1','FOCUS F', "0.4", '-', '>', -1, "close", "OF230_Icc_IntelMPI"]
+    ,['FOCUS_H-mesh_24M-No1','FOCUS H', "0.6", '-', 'H', 8, "close", "OF230_Icc_IntelMPI"]
     ]
 
 nodeLarge=[1,2,4,8,10,16,24,32]
@@ -47,7 +47,7 @@ def parser():
     p.add_argument('--topFraction'
                    , help='Top faction', type=float, default=0.95)
     p.add_argument('--bottomFraction'
-                   , help='Bottom faction', type=float, default=0.1)
+                   , help='Bottom faction', type=float, default=0.13)
     return p.parse_args()
 
 
@@ -99,7 +99,7 @@ def result(basename):
                             
 def charge(basename,node,report,year):
     chargeCoef=np.ones(len(node))
-    label=[basename[1]+","+basename[7]]
+    label=[basename[1]]
     if basename[1] == "FOCUS A":
         chargePerTime=[0]
         chargePerNodeTime=[100*1.08]
@@ -272,6 +272,10 @@ def charge(basename,node,report,year):
         chargePerTime=[0,0]
         chargePerNodeTime=[62000/2880]
 
+    elif basename[1] == "Oakforest-PACS":
+        chargePerTime=[0,0]
+        chargePerNodeTime=[100000/17280*1.2]
+
     elif basename[1] == "TSUBAME S" or basename[1] =="TSUBAME G":
         if basename[1] == "TSUBAME G":
             for i in range(len(node)):
@@ -282,11 +286,13 @@ def charge(basename,node,report,year):
         else:
             chargePerNodeTime=[10*4*1.08]
 
-    if  basename[1] == "Oakleaf-FX" or basename[1] == "Reedbush-U":
+    if  basename[1] == "Oakleaf-FX" or basename[1] == "Reedbush-U" or basename[1] == "Oakforest-PACS":
         if  basename[1] == "Oakleaf-FX":
             normalChargeNodeMax=12
-        else:
+        elif  basename[1] == "Reedbush-U":
             normalChargeNodeMax=4
+        else:
+            normalChargeNodeMax=2
 
         for i in range(len(node)):
             if node[i]<=normalChargeNodeMax:
@@ -368,7 +374,7 @@ def plotParallelEfficiency(args,base,basenameArray,xticksNode):
         peMax=max(max(peAve),peMax)
         plt.plot(node
                  ,peAve
-                 , label=basename[1]+","+basename[7]
+                 , label=basename[1]
                  , linewidth=args.lineWidth
                  , color=basename[2]
                  , linestyle=basename[3]
@@ -448,7 +454,7 @@ def plotNumberOfTimeStepPerHour(args,base,basenameArray,xticksNode):
         nTimeStepPerHourAveMax=max(max(nTimeStepPerHourAve),nTimeStepPerHourAveMax)
         plt.plot(node
                  ,nTimeStepPerHourAve
-                 , label=basename[1]+","+basename[7]
+                 , label=basename[1]
                  , linewidth=args.lineWidth
                  , color=basename[2]
                  , linestyle=basename[3]
@@ -496,7 +502,7 @@ if __name__ == '__main__':
     args=parser()
 
     if args.all:
-        nodeLarge=[1,2,4,8,10,16,24,32,64,96]
+        nodeLarge=[1,2,4,8,10,16,24,32,64,96,128,256,512]
     
     for xscaleLinear in [ False,True ]:
         args.xscaleLinear=xscaleLinear
