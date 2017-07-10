@@ -67,6 +67,12 @@ BATCH_PRE=1
 BATCH_DECOMPOSEPAR=1
 BATCH_SOLVE=1
 
+if [ "$PJM_ENVIRONMENT" = "INTERACT" ]; then
+  BATCH_PRE=0
+  BATCH_DECOMPOSEPAR=0
+  BATCH_SOLVE=0
+fi
+
 MAX_NUMBER_OF_QUEUE=90
 NAME=OFBench
 
@@ -110,30 +116,32 @@ BatchSubmit()
     echo "BATCHFILE: $BATCHFILE" 
     echo "MPI: $MPI" 
 
-    if [ "$PJM_ENVIRONMENT" = "INTERACT" ]; then
-    	if [ "$BATCHFILE" = "decomposePar.sh" ];then
-	    ./$BATCHFILE &
-	    touch ${BATCHFILE}.done
-	else
-	    ./$BATCHFILE
-	fi
-   else
+    if [ "$BATCHFILE" = "pre.sh" -o "$BATCHFILE" = "decomposePar.sh" ];then
+        local NPROCS_PER_NODE=256
+        local RAM_MODE=cache
+	local QUEUE=regular-$RAM_MODE
+    else
         local NPROCS_PER_NODE=`echo $BATCHFILE | cut  -d "_"  -f 5`
-	echo "NPROCS_PER_NODE: $NPROCS_PER_NODE" 
-        local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
-	echo "NODE: $NODE" 
+        local RAM_MODE=`echo $BATCHFILE | cut  -d "_"  -f 6`
+	local QUEUE=regular-$RAM_MODE
+    fi
+
+    echo "NPROCS_PER_NODE: $NPROCS_PER_NODE" 
+    echo "QUEUE: $QUEUE:"
+	    
+    local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+    echo "NODE: $NODE" 
+
+    if [ "$BATCHFILE" != "pre.sh" -a "$BATCHFILE" != "decomposePar.sh" ];then
 	local MPI_TMP=`echo "$NODE * $NPROCS_PER_NODE" | bc`
 	echo "NODE * NPROCS_PER_NODE: $MPI_TMP"
         if [ $MPI -ne $MPI_TMP ];then
-	  echo "Number of MPI is mismatch. Skip running."
-  	  return 0
+	    echo "Number of MPI is mismatch. Skip running."
+  	    return 0
 	fi  
-
-        local RAM_MODE=`echo $BATCHFILE | cut  -d "_"  -f 6`
-	local QUEUE=regular-$RAM_MODE
-
-	command="pjsub -X -g ${GROUP} -L rscgrp=${QUEUE},node=${NODE},elapse=${WALLTIME} --mpi proc=${MPI} ${BATCHFILE}"
-        echo $command
-	$command
     fi
+
+    command="pjsub -X -g ${GROUP} -L rscgrp=${QUEUE},node=${NODE},elapse=${WALLTIME} --mpi proc=${MPI} ${BATCHFILE}"
+    echo $command
+    $command
 }
