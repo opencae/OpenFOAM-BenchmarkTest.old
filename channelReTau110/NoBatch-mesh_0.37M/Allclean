@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -rf cases
+rm -f *.csv *.tar.bz2 *log *.pdf *.eps

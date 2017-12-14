@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for case in all
+do
+    ../bin/benchmark.sh $case >& $case.log
+done

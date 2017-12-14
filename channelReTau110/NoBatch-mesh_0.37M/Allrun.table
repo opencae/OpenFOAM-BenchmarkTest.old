@@ -1,0 +1,6 @@
+#!/bin/sh
+
+for case in all
+do
+    ../bin/table.sh $case > $case.table.log
+done
