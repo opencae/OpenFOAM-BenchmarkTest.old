@@ -282,7 +282,7 @@ Slaveの情報を消している．
     ソルバのログのアーカイブファイル(*.tar.bz2)
     ベンチマークケース共有設定ファイルのディレクトリ(share/*)  
 
-README.md の様式は NoBatch-mesh_0.37M/README.md を参照のこと．
+README.mdは [NoBatch-mesh_0.37M/README.md](https://github.com/opencae/OpenFOAM-BenchmarkTest/blob/master/channelReTau110/NoBatch-mesh_0.37M/README.md) を参照のこと．
 
 ## References
 
