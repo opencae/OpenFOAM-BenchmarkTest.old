@@ -22,23 +22,23 @@ HUGE=1e+30
 base="all"
 basenameArrayArray=[
     [
-        ['n32IAR.csv', "PCG-FDIC", "n32-4.1IAR-system-Icc16_0_4_258-Opt-INTELMPI5_1_3_258",'M1-C1-CG'
+        ['n32IAR.csv', "PCG-FDIC", "n32-4.1IAR-system-Icc16_0_4_258-Opt-INTELMPI5_1_3_258",'C1-CG'
          , '--', 2, 'k', '+', 2, 'k', 'none', 10]
-        ,['n32IAR.csv', "PPCG-FDIC", "n32-4.1IAR-system-Icc16_0_4_258-Opt-INTELMPI5_1_3_258",'M1-C1-CACG'
+        ,['n32IAR.csv', "PPCG-FDIC", "n32-4.1IAR-system-Icc16_0_4_258-Opt-INTELMPI5_1_3_258",'C1-CACG'
           , '-', 2, 'y', '^', 2, 'y', 'none', 10]
      ]
     ,
     [
-        ['n32IAR.csv', "PCG-FDIC", "n32-4.1IAR-system-Icc17_0_4_196-Opt-INTELMPI2017_3_196",'M1-C2-CG'
+        ['n32IAR.csv', "PCG-FDIC", "n32-4.1IAR-system-Icc17_0_4_196-Opt-INTELMPI2017_3_196",'C2-CG'
           , '--', 2, 'm', 's', 2, 'm', 'none', 10]
-        ,['n32IAR.csv', "PPCG-FDIC", "n32-4.1IAR-system-Icc17_0_4_196-Opt-INTELMPI2017_3_196",'M1-C2-CACG'
+        ,['n32IAR.csv', "PPCG-FDIC", "n32-4.1IAR-system-Icc17_0_4_196-Opt-INTELMPI2017_3_196",'C2-CACG'
           , '-', 2, 'b', 'D', 2, 'b', 'none', 10]
      ]
     ,
     [
-        ['n32IAR.csv', "PCG-FDIC", "n32-4.1IAR-system-Icc17_0_2_174-Opt-MPIMVAPICH2_2_2",'M1-C3-CG'
+        ['n32IAR.csv', "PCG-FDIC", "n32-4.1IAR-system-Icc17_0_2_174-Opt-MPIMVAPICH2_2_2",'C3-CG'
           , '--', 2, 'g', 'x', 2, 'g', 'none', 10]
-        ,['n32IAR.csv', "PPCG-FDIC", "n32-4.1IAR-system-Icc17_0_2_174-Opt-MPIMVAPICH2_2_2",'M1-C3-CACG'
+        ,['n32IAR.csv', "PPCG-FDIC", "n32-4.1IAR-system-Icc17_0_2_174-Opt-MPIMVAPICH2_2_2",'C3-CACG'
           , '-', 2, 'r', 'o', 2, 'r', 'none', 10]
      ]
 ]
