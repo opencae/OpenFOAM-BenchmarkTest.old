@@ -49,5 +49,5 @@ ${caseName}.pdf
 
 rm ${caseName}.pdf
 
-../Reedbush_U-mesh_370K-CA-No1/comparison.py
+../Reedbush_U-mesh_0.37M-CA-No1/comparison.py
 
