@@ -73,7 +73,7 @@ makeCases()
     -e s/"^ *endTime .*"/"endTime $endTime;"/ \
     cases/system/controlDict
 
-    cat >> system/controlDict <<EOF
+    cat >> cases/system/controlDict <<EOF
 libs
 (
   "libPipelinedSolvers.so"
@@ -83,7 +83,7 @@ libs
 DebugSwitches
 {
     SolverPerformance   2;
-    lduMatrix           2;  
+    lduMatrix           2;
     PCGCG               2;
     PPCG                2;
     GACG                2;
@@ -96,8 +96,6 @@ EOF
     -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
     -e s/"^ *endTime .*"/"endTime $endTime;"/ \
     cases/system/fvSolution
- 
-    cd ../
 }
 
 NumberOfBatchQueue()
@@ -110,8 +108,8 @@ BatchSubmit()
     local BATCHFILE=$1
     local MPI=$2
 
-    echo "BATCHFILE: $BATCHFILE" 
-    echo "MPI: $MPI" 
+    echo "BATCHFILE: $BATCHFILE"
+    echo "MPI: $MPI"
 
     if [ "$BATCHFILE" = "pre.sh" -o "$BATCHFILE" = "decomposePar.sh" ];then
         local NPROCS_PER_NODE=36
@@ -119,11 +117,11 @@ BatchSubmit()
         local NPROCS_PER_NODE=`echo $BATCHFILE | cut  -d "-"  -f 1 | tr -d 'n'`
     fi
 
-    echo "NPROCS_PER_NODE: $NPROCS_PER_NODE" 
+    echo "NPROCS_PER_NODE: $NPROCS_PER_NODE"
 
     local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
 
-    echo "NODE: $NODE" 
+    echo "NODE: $NODE"
 
     if [ "$BATCHFILE" != "pre.sh" -a "$BATCHFILE" != "decomposePar.sh" ];then
 	local MPI_TMP=`echo "$NODE * $NPROCS_PER_NODE" | bc`
@@ -131,31 +129,17 @@ BatchSubmit()
         if [ $MPI -ne $MPI_TMP ];then
 	    echo "Number of MPI is mismatch. Skip running."
   	    return 0
-	fi  
+	fi
     fi
 
     local GROUP="gz00"
 	
-    if expr "$BATCHFILE"  : ".*-p$"
-    then
-      if [ $NODE -le 1 ];then	
-        QUEUE="u-debug"
-        WALLTIME="00:15:00"
-      elif [ $NODE -le 3 ];then	
-        QUEUE="u-debug"
-        WALLTIME="00:05:00"
-      else
-        QUEUE="u-regular"
-        WALLTIME="00:05:00"
-      fi
+    if [ $NODE -le 24 ];then	
+	QUEUE="u-debug"
+	WALLTIME="00:15:00"
     else
-      if [ $NODE -le 24 ];then	
-        QUEUE="u-debug"
-        WALLTIME="00:30:00"
-      else
-        QUEUE="u-regular"
-        WALLTIME="00:30:00"
-      fi
+	QUEUE="u-regular"
+	WALLTIME="00:05:00"
     fi
 				
     qsub \
