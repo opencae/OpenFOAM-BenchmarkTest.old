@@ -42,12 +42,12 @@ def parser():
                    , help='offset ratio of x range', type=float, default=0.02)
     p.add_argument('-O','--offsetSolver'
                    , help='offset ratio of x range in solver-* plot', type=float, default=0.02)
-    p.add_argument('--titleFontSize', help='Title font size', type=int, default=14)
+    p.add_argument('--titleFontSize', help='Title font size', type=int, default=12)
     p.add_argument('--legendFontSize', help='Legend font size', type=int, default=12)
-    p.add_argument('--xlabelFontSize', help='X label fontsize', type=int, default=14)
-    p.add_argument('--ylabelFontSize', help='Y label fontsize', type=int, default=14)
-    p.add_argument('--tickFontSize', help='Tick font size', type=int, default=14)
-    p.add_argument('--solverTickFontSize', help='Solver tick font size', type=int, default=14)
+    p.add_argument('--xlabelFontSize', help='X label fontsize', type=int, default=12)
+    p.add_argument('--ylabelFontSize', help='Y label fontsize', type=int, default=12)
+    p.add_argument('--tickFontSize', help='Tick font size', type=int, default=12)
+    p.add_argument('--solverTickFontSize', help='Solver tick font size', type=int, default=12)
     p.add_argument('--topFractionSolver'
                    , help='Top faction in solver-* plot', type=float, default=0.95)
     p.add_argument('--bottomFractionSolver'
