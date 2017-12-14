@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rm *.{eps,pdf}
+rm -f *.{eps,pdf}
 
 ../bin/plot.py \
     n32IAR.csv \
@@ -48,3 +48,5 @@ gs \
 ${caseName}.pdf
 
 rm ${caseName}.pdf
+
+./comparison.py
