@@ -10,12 +10,13 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import csv
 import math
-import pandas as pd
+import pandas
 
 def parser():
     p = argparse.ArgumentParser()
     p.add_argument('csvFilename')
-    p.add_argument('-a','--all', help='plot all', action='store_true')
+    p.add_argument('-a','--all', help='plot loop, sph, pe, first, solution', action='store_true')
+    p.add_argument('-A','--ALL', help='plot LOOP, SPH, PE, FIRST, SOLUTION', action='store_true')
     p.add_argument('--loop', action='store_true')
     p.add_argument('--LOOP', action='store_true')
     p.add_argument('--sph', action='store_true')
@@ -405,33 +406,32 @@ if __name__ == '__main__':
         if args.all or args.loop:
             mpiExecutionTimePerStep(args, data, args.ExecutionTimePerStep
                                     ,'Execution time per time step [s]')
-        if args.all or args.LOOP:
+        if args.ALL or args.LOOP:
             mpiExecutionTimePerStep(args, data, args.ClockTimePerStep
                                     ,'Clock time per time step [s]')
         if args.all or args.sph:
             mpiNumberOfStepsPerHour(args, data, args.ExecutionTimePerStep
                                     ,'Number of steps per hour (Execution time base)')
-        if args.all or args.SPH:
+        if args.ALL or args.SPH:
             mpiNumberOfStepsPerHour(args, data, args.ClockTimePerStep
                                     ,'Number of steps per hour (Clock time base)')
         if args.all or args.pe:
             mpiParallelEfficiency(args, data, args.ExecutionTimePerStep
                                   ,'Parallel efficiency [%] (Execution time base)')
-        if args.all or args.PE:
+        if args.ALL or args.PE:
             mpiParallelEfficiency(args, data, args.ClockTimePerStep
                                   ,'Parallel efficiency [%] (Clock time base)')
         if args.all or args.first:
             mpiFirstExecutionTimePerStep(args, data, args.ExecutionTimeFirstStep
                                          ,'Execution time to complete 1st time step [s]')
-        if args.all or args.FIRST:
+        if args.ALL or args.FIRST:
             mpiFirstExecutionTimePerStep(args, data, args.ClockTimeFirstStep
                                          ,'Clock time to complete 1st time step [s]')
-
 
     if len(pd.unique(data['fvSolution']))>1:
         if args.all or args.solution:
             solverExecutionTimePerStep(args, data, args.ExecutionTimePerStep
                                        ,'Execution time per time step [s]')
-        if args.all or args.SOLUTION:
+        if args.ALL or args.SOLUTION:
             solverExecutionTimePerStep(args, data, args.ClockTimePerStep
                                        ,'Clock time per time step [s]')
