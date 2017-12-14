@@ -15,12 +15,11 @@ OpenFOAM-BenchmarkTest-channelReTau110は
     README.md         このファイル
     bin/              スクリプト
       benchmark.sh      ベンチマーク実行スクリプト
-      cleanFailLog.sh   完了しなかったソルバログの消去・移動スクリプト
       plot.py           ベンチマーク結果のプロット用Pythonスクリプト
       table.sh          ベンチマーク結果の集計スクリプト   
     src/              ソース
     template/         channelReTau110のケースディレクトリ
-    NoBatch-mesh_3M/  非バッチジョブシステムでの3M格子の設定例
+    NoBatch-mesh_0.37M/  非バッチジョブシステムでの0.37M格子の設定例
       all               ベンチマークケース設定ファイル(ファイル名任意)
       share/            ベンチマークケース共有設定ファイルのディレクトリ
         batchScript/      バッチスクリプトのディレクトリ
@@ -38,12 +37,13 @@ OpenFOAM-BenchmarkTest-channelReTau110は
 ベンチマークケースの設定ファイル名は任意のファイルで良いが，
 例えばallとすると以下のように設定する．
 
-NoBatch-mesh_3M/all
+NoBatch-mesh_0.37M/all
 ```
 # 領域分割設定検討ケース配列
 decomposeParDictArray=(
-mpi_0010-method_scotch
-mpi_0020-method_scotch
+mpi_00002-method_scotch
+mpi_00004-method_scotch
+mpi_00008-method_scotch
 )
 
 # 解法設定の検討ケース配列
@@ -69,11 +69,11 @@ BATCH_SOLVE=0         # ソルバ解析のバッチジョブでの実行(0=し�
 # また，時間刻みdeltaTは0.48/mx，endTimeはdeltaT*52の値にする．
 makeCases()
 {
-    local mx=240
-    local my=130
-    local mz=96
-    local deltaT=0.002
-    local endTime=0.104
+    local mx=120
+    local my=65
+    local mz=48
+    local deltaT=0.004
+    local endTime=0.204
 
     cp -a ../template cases
 
@@ -213,7 +213,7 @@ touch ${application}.done
 領域分割を行うバッチスクリプトをshare/batchScript/solve/に置く．
 mpirunのオプションが必要であれば追加する．
 
-NoBatch-mesh_3M/share/batchScript/solve/OpenFOAM
+NoBatch-mesh_0.37M/share/batchScript/solve/OpenFOAM
 ```
 #!/bin/bash
 
@@ -241,7 +241,7 @@ grep "^End" $log >& /dev/null
 ベンチマークの実行は以下のようにする．
 
 ```bash
-../bin/benchmark.sh ベンチマークケース設定ファイル名(all等) >& log &
+./Allrun.bench &
 ```
 
 ### ベンチマーク結果の集計
@@ -249,7 +249,7 @@ grep "^End" $log >& /dev/null
 ベンチマーク実行用のディレクトリ上で以下を実行する．
 
 ```bash
-../bin/table.sh ベンチマークケース設定ファイル名(all等)
+./Allrun.table
 ```
 
 ベンチマーク結果を集計したファイルベンチマークケース設定ファイル名.csv
@@ -266,56 +266,23 @@ Slaveの情報を消している．
 ベンチマーク実行用のディレクトリ上で以下のPythonスクリプトを実行する．
 
 ```bash
-../bin/plot.py csvファイル名(all.csv等)
+./Allrun.plot
 ```
 
 ベンチマーク結果をプロットしたファイル*.pdfが作成される．
-なお，NumPy,PyLab,matplotlibのライブラリが必要である．
+なお，NumPy, PyLab, matplotlib, pandasのライブラリが必要である．
 
 ## ベンチマーク結果の提供のお願い
 
 ベンチマークテストを行なった場合には，以下のデータを提供をお願いする．
 
     README.md
-    ベンチマークケース設定ファイル
+    ベンチマークケース設定ファイル(allなど)
     ベンチマーク結果を集計したファイル(*.csv)
     ソルバのログのアーカイブファイル(*.tar.bz2)
     ベンチマークケース共有設定ファイルのディレクトリ(share/*)  
 
-### README.md
-
-    # ハードウェア名称-mesh_格子数-NoX
-
-    ## 測定者情報
-
-    * 測定者: [本名で無くても構いません]
-    * 測定日: [例: 2016年1月1日-2016年1月2日]
-
-    ## ベンチマーク情報
-
-    * 格子数: [例: 3M(240x130x96)]
-    * MPI数[ノード数]: [例: 10(1)，20(2)]
-
-    ## ハードウェア情報
-    * ハードウェア名称: [例: NEC Express5800/HR120a-1]
-    * CPUの種別: [例: Intel Xeon CPU E5-2680 v2]
-    * CPUの周波数: [例: 2.80GHz]
-    * コア数/CPU: [例: 10]
-    * CPU数/ノード: [例: 2]
-    * メモリ量/ノード: [例: 28GB]
-    * メモリ種別: [例: SDRAM DDR3-1333 ECC]
-    * メモリ帯域幅: [例: 85 GB/s]
-    * インターフェース種別: [例: FDR-InfiniBand] 
-    * インターフェース数/ノード: [例: 1基] 
-    * インターフェース・スループット/基: [例: 56Gbps] 
-    * その他特記事項:
-
-    ## ソフトウェア情報
-    * OpenFOAMのバージョン: [例: OpenFOAM-4.1]
-    * ビルドに使用したコンパイラ: [例: Gcc-4.8.5]
-    * コンパイラの最適化オプション: [例: -O3]
-    * 使用したMPIライブラリ: [例: OpenMPI-1.8.4]
-    * その他特記事項:
+README.md の様式は NoBatch-mesh_0.37M/README.md を参照のこと．
 
 ## References
 
