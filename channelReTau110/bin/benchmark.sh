@@ -31,30 +31,6 @@ BatchSubmitAndWait()
     fi
 }
 
-SymlinkParentFiles()
-{
-    ln -s ../0 ./
-    mkdir constant
-    (cd constant
-	ln -s ../../constant/* ./
-    )
-    mkdir system
-    (cd system
-	ln -s ../../system/* ./
-    )
-					
-    if [ -d ../processor0 ];then
-	for dir in ../processor*
-	do
-	    processorDir=`basename $dir`
-	    mkdir $processorDir
-	    (cd $processorDir
-		ln -s ../../$processorDir/{0,constant} ./
-	    )
-	done
-    fi
-}
-
 if [ "$#" -ne 1 ];then
         cat<<USAGE
 Usage: ${0##*/} configuration
@@ -133,9 +109,13 @@ done
 	    if [ ! -d $decomposeParDict ];then
 		mkdir $decomposeParDict
 		(cd $decomposeParDict
-		    SymlinkParentFiles
-		    rm -rf 0
-		    cp -a ../0 ./
+		    for dir in 0 constant system
+		    do
+			mkdir $dir
+			(cd $dir 
+			    ln -s ../../$dir/* ./
+			)
+		    done
 		)
 	    fi
 		
@@ -169,15 +149,12 @@ done
 
 		    if [ ! -d $fvSolution ];then
 			mkdir $fvSolution
-			(cd $fvSolution
-			    SymlinkParentFiles
-			)
 		    fi
 
 		    (cd $fvSolution
 			echo "dir= cases/$decomposeParDict/$fvSolution"
 
-			rm -f system/fvSolution
+			[ -d system ] || mkdir system
 			cp $fvSolutionFile system/fvSolution
 
 			for solveBatch in ${solveBatchArray[@]}
@@ -197,22 +174,16 @@ done
 				fi
 			    fi
 
-			    if [ ! -d $solveBatch ];then
-				mkdir $solveBatch
-				(cd $solveBatch
-				    SymlinkParentFiles
-				)
-			    fi
-			
+			    [ -d $solveBatch ] || mkdir $solveBatch
+
 			    (cd $solveBatch
 				echo "dir= cases/$decomposeParDict/$fvSolution/$solveBatch"
 
 				cp $solveBatchFile ./
 				chmod +x $solveBatchFile
 
-				application=$(getApplication)
+				application=`cd ../../../;getApplication`
 				echo "application= $application"
-
 				ndone=`ls log.${application}.*.done 2> /dev/null | wc -l`
 				nqueue=`ls log.${application}.$$.*.queue  2> /dev/null | wc -l`
 				ndoneAndQueue=`expr $ndone + $nqueue`
@@ -220,6 +191,30 @@ done
 				if [ "$ndoneAndQueue" -ge "$MAX_NUMBER_OF_LOOP" ];then
 				    echo "Already run in $MAX_NUMBER_OF_LOOP time(s). Skip running"
 				    continue
+				fi
+
+				rm -f 0 constant
+				ln -s ../../../{0,constant} .
+				rm -rf system
+				mkdir system
+				(cd system
+				    rm -f *
+				    ln -s ../../../../system/* .
+				    rm -f fvSolution
+				    ln -s ../../system/fvSolution .
+				    rm -f decomposeParDict
+				    ln -s ../../../system/decomposeParDict
+				)
+				if [ -d ../../processor0 ];then
+				    rm -rf processor[0-9]*
+				    for dir in ../../processor[0-9]*
+				    do
+					processorDir=${dir##*/}
+					mkdir $processorDir
+					(cd $processorDir
+					    ln -s ../../../$processorDir/{0,constant} ./
+					)
+				    done
 				fi
 
 				if [ $BATCH_SOLVE -eq 1 ];then
