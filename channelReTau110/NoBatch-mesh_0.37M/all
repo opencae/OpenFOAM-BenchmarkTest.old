@@ -24,8 +24,8 @@ makeCases()
     local mx=120
     local my=65
     local mz=48
-    local deltaT=0.001
-    local endTime=0.052
+    local deltaT=0.004
+    local endTime=0.204
 
     cp -a ../template cases
 
