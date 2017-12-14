@@ -24,7 +24,7 @@ application=`sed -ne 's/^ *application[ \t]*\([a-zA-Z]*\)[ \t]*;.*$/\1/p' cases/
 
 logs=""
 
-line="#log,decomposeParDict,method,fvSolution,solveBatch"
+line="#decomposeParDict,method,fvSolution,solveBatch,log"
 line="$line,Build,Date,Time,nNodes,nProcs"
 line="$line,CoMean,CoMax"
 line="$line,UxInitRes,UxFinalRes,UxNoIter"
@@ -42,13 +42,13 @@ line="$line,ExecutionTimePerStepWOLastStep,ExecutionTimePerStep"
 
 echo $line > $csvFile
 
-for decomposeParDict in `echo ${decomposeParDictArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
+for decomposeParDict in `echo ${decomposeParDictArray[@]} | tr ' ' '\n' | sort -d | tr '\n' ' '`
 do
     decomposeParDictFile=$decomposeParDictDir/$decomposeParDict		
     method=`grep '^ *method ' $decomposeParDictFile | sed "s/^[ 	]*method[ 	]*\([^ 	]*\);.*/\1/"`
-    for fvSolution in `echo ${fvSolutionArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
+    for fvSolution in `echo ${fvSolutionArray[@]} | tr ' ' '\n' | sort -d | tr '\n' ' '`
     do
-	for solveBatch in `echo ${solveBatchArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
+	for solveBatch in `echo ${solveBatchArray[@]} | tr ' ' '\n' | sort -d | tr '\n' ' '`
 	do
 	    Dir=$caseDir/$decomposeParDict/$fvSolution/$solveBatch
 	    echo "Dir= $Dir"
@@ -87,7 +87,7 @@ do
 
 		newlog=$Dir/log.${application}.No${n}
 		    
-		line="${newlog##*/},$decomposeParDict,$method,$fvSolution,$solveBatch"
+		line="$decomposeParDict,$method,$fvSolution,$solveBatch,${newlog##*/}"
 		line="$line,$Build,$Date,$Time,$nNodes,$nProcs"
     	        line="$line,$Co,$Ux,$Uy,$Uz,$p0,$p1,$err0,$err1"
 		line="$line,$ExecutionTime"
