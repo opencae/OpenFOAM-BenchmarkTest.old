@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 import os
@@ -10,6 +10,7 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 import csv
 import math
+import pandas as pd
 
 def parser():
     p = argparse.ArgumentParser()
@@ -115,7 +116,7 @@ def plotEnd(plotfile):
     plt.clf()
 
 def solverExecutionTimePerStep(args,data,column,ylabel):
-    for decomposeParDict in np.unique(data['decomposeParDict']):
+    for decomposeParDict in pd.unique(data['decomposeParDict']):
         title=decomposeParDict
         subfilename='-'+column
         plotfile=plotMpiInit(title,subfilename)
@@ -129,7 +130,7 @@ def solverExecutionTimePerStep(args,data,column,ylabel):
                 )
 
             solver=data['fvSolution'][idx]
-            sn = np.unique(solver)
+            sn = pd.unique(solver)
             x=np.arange(len(sn))
             if len(x)<=0:
                 continue
@@ -163,7 +164,7 @@ def solverExecutionTimePerStep(args,data,column,ylabel):
         plt.legend(loc='best', prop={'size':args.legendFontSize})
         plt.grid()
 
-        sn=np.unique(data['fvSolution'])
+        sn=pd.unique(data['fvSolution'])
         x=np.arange(len(sn))
         snTicks=[]
         for snI in sn:
@@ -189,8 +190,8 @@ def solverExecutionTimePerStep(args,data,column,ylabel):
         plotEnd(plotfile)
 
 def mpiFirstExecutionTimePerStep(args,data,column,ylabel):
-    for solver in np.unique(data['fvSolution']):
-        for method in np.unique(data['method']):
+    for solver in pd.unique(data['fvSolution']):
+        for method in pd.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-1stTime-'+column
             plotfile=plotMpiInit(title,subfilename)
@@ -209,7 +210,7 @@ def mpiFirstExecutionTimePerStep(args,data,column,ylabel):
 
                 ExecutionTimeFirstStep=data[column][idx]
 
-                mpi = np.unique(x)
+                mpi = pd.unique(x)
                 index0=[]
                 for mpiI in mpi:
                     index0.append(np.where(x==mpiI)[0][0])
@@ -229,13 +230,13 @@ def mpiFirstExecutionTimePerStep(args,data,column,ylabel):
                 else:
                     plt.plot(mpi, ExecutionTimeFirstStepAve, label=labelName, linewidth=args.lineWidth)
 
-            mpi = np.unique(data['nProcs'])
+            mpi = pd.unique(data['nProcs'])
             xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
             plotEnd(plotfile)
 
 def mpiExecutionTimePerStep(args,data,column,ylabel):
-    for solver in np.unique(data['fvSolution']):
-        for method in np.unique(data['method']):
+    for solver in pd.unique(data['fvSolution']):
+        for method in pd.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-loopTime-'+column
             plotfile=plotMpiInit(title,subfilename)
@@ -254,7 +255,7 @@ def mpiExecutionTimePerStep(args,data,column,ylabel):
 
                 ExecutionTimePerStep=data[column][idx]
 
-                mpi = np.unique(x)
+                mpi = pd.unique(x)
                 index0=[]
                 for mpiI in mpi:
                     index0.append(np.where(x==mpiI)[0][0])
@@ -276,15 +277,15 @@ def mpiExecutionTimePerStep(args,data,column,ylabel):
 
                 rBase=ExecutionTimeAve[0]*mpi[0]
 
-            mpi = np.unique(data['nProcs'])
+            mpi = pd.unique(data['nProcs'])
             xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
             if not args.yscaleLinear:
                 plt.plot([xmin, xmax], [rBase/xmin, rBase/xmax], 'k-', label="Ideal", linewidth=args.lineWidth)
             plotEnd(plotfile)
 
 def mpiNumberOfStepsPerHour(args,data,column,ylabel):
-    for solver in np.unique(data['fvSolution']):
-        for method in np.unique(data['method']):
+    for solver in pd.unique(data['fvSolution']):
+        for method in pd.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-sph-'+column
             plotfile=plotMpiInit(title,subfilename)
@@ -303,7 +304,7 @@ def mpiNumberOfStepsPerHour(args,data,column,ylabel):
 
                 ExecutionTimePerStep=data[column][idx]
 
-                mpi = np.unique(x)
+                mpi = pd.unique(x)
                 index0=[]
                 for mpiI in mpi:
                     index0.append(np.where(x==mpiI)[0][0])
@@ -329,15 +330,15 @@ def mpiNumberOfStepsPerHour(args,data,column,ylabel):
 
                 rBase=numberOfStepsPerHourAve[0]/mpi[0]
 
-            mpi = np.unique(data['nProcs'])
+            mpi = pd.unique(data['nProcs'])
             xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
             if not args.yscaleLinear:
                 plt.plot([xmin, xmax], [xmin*rBase, xmax*rBase], 'k-', label="Ideal", linewidth=args.lineWidth)
             plotEnd(plotfile)
 
 def mpiParallelEfficiency(args,data,column,ylabel):
-    for solver in np.unique(data['fvSolution']):
-        for method in np.unique(data['method']):
+    for solver in pd.unique(data['fvSolution']):
+        for method in pd.unique(data['method']):
             title=solver+'-method_'+method
             subfilename='-pe-'+column
             plotfile=plotMpiInit(title,subfilename)
@@ -356,7 +357,7 @@ def mpiParallelEfficiency(args,data,column,ylabel):
 
                 ExecutionTimePerStep=data[column][idx]
 
-                mpi = np.unique(x)
+                mpi = pd.unique(x)
                 index0=[]
                 for mpiI in mpi:
                     index0.append(np.where(x==mpiI)[0][0])
@@ -380,7 +381,7 @@ def mpiParallelEfficiency(args,data,column,ylabel):
                 else:
                     plt.plot(mpi, ExecutionTimePEAve, label=labelName, linewidth=args.lineWidth)
 
-            mpi = np.unique(data['nProcs'])
+            mpi = pd.unique(data['nProcs'])
             xmin,xmax,ymin,ymax=plotMpi(args,plotfile,mpi,ylabel)
             plt.plot([xmin, xmax], [100, 100], 'k-', label="Ideal", linewidth=args.lineWidth)
             plotEnd(plotfile)
@@ -391,7 +392,7 @@ if __name__ == '__main__':
     data=np.genfromtxt(args.csvFilename, names=True, delimiter=',', dtype=None)
 
     if args.batchFileName==None:
-        args.batchFileNameList=np.unique(data['solveBatch'])
+        args.batchFileNameList=pd.unique(data['solveBatch'])
     else:
         args.batchFileNameList=args.batchFileName
 
@@ -400,7 +401,7 @@ if __name__ == '__main__':
     else:
         args.labelNameList=args.labelName
         
-    if len(np.unique(data['nProcs']))>1:
+    if len(pd.unique(data['nProcs']))>1:
         if args.all or args.loop:
             mpiExecutionTimePerStep(args, data, args.ExecutionTimePerStep
                                     ,'Execution time per time step [s]')
@@ -427,15 +428,10 @@ if __name__ == '__main__':
                                          ,'Clock time to complete 1st time step [s]')
 
 
-    if len(np.unique(data['fvSolution']))>1:
+    if len(pd.unique(data['fvSolution']))>1:
         if args.all or args.solution:
             solverExecutionTimePerStep(args, data, args.ExecutionTimePerStep
                                        ,'Execution time per time step [s]')
         if args.all or args.SOLUTION:
             solverExecutionTimePerStep(args, data, args.ClockTimePerStep
                                        ,'Clock time per time step [s]')
-
-    fdone=open(args.csvFilename+'_plot.py_done','w')
-    fdone.write('')
-    fdone.close
-
