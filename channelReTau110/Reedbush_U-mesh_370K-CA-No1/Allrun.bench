@@ -1,0 +1,8 @@
+#!/bin/sh
+
+for case in n32IAR
+
+do
+    [ -L "$case" ] || ln -s all $case
+    ../bin/benchmark.sh $case >& $case.log
+done

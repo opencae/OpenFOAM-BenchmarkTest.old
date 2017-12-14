@@ -1,0 +1,11 @@
+#!/bin/sh
+
+module load intel-vtune/17.3.0.510739
+
+for case in n32IAR-a
+
+do
+    [ -f "$case" ] || ln -s all $case
+    ../bin/vtune.sh $case > $case.vtune.log 2>&1
+done
+ 

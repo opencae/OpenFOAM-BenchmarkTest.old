@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for case in n32IAR
+
+do
+    [ -f "$case" ] || ln -s all $case
+    rm -f $case.csv
+    ../bin/table.sh $case > $case.table.log
+done

@@ -1,0 +1,155 @@
+MAX_NUMBER_OF_LOOP=1
+
+BATCH_PRE=0
+BATCH_DECOMPOSEPAR=0
+BATCH_SOLVE=1
+
+MAX_NUMBER_OF_QUEUE=50
+NAME=OFBench
+
+case "$configuration" in
+    n32IAR)
+	decomposeParDictArray=(
+	    mpi_00032-method_scotch
+	    mpi_00064-method_scotch
+	    mpi_00128-method_scotch
+	    mpi_00256-method_scotch
+	    mpi_00512-method_scotch
+	    mpi_01024-method_scotch
+	    mpi_02048-method_scotch
+	    mpi_04096-method_scotch
+	)
+	solveBatchArray=(
+	    n32-4.1IAR-system-Icc16_0_4_258-Opt-INTELMPI5_1_3_258
+	    n32-4.1IAR-system-Icc17_0_2_174-Opt-MPIMVAPICH2_2_2
+	    n32-4.1IAR-system-Icc17_0_4_196-Opt-INTELMPI2017_3_196
+	)
+	fvSolutionArray=(
+	    PCG-FDIC	
+	    PPCG-FDIC
+	    PCGCG-FDIC
+	)
+     ;;
+    n32IAR-a)
+	decomposeParDictArray=(
+	    mpi_00032-method_scotch
+	    mpi_00064-method_scotch
+	    mpi_00128-method_scotch
+	    mpi_00256-method_scotch
+	    mpi_00512-method_scotch
+	    mpi_01024-method_scotch
+	    mpi_02048-method_scotch
+	    mpi_04096-method_scotch
+	)
+	solveBatchArray=(
+	    n32-4.1IAR-system-Icc16_0_4_258-Opt-INTELMPI5_1_3_258-a
+	    n32-4.1IAR-system-Icc17_0_2_174-Opt-MPIMVAPICH2_2_2-a
+	    n32-4.1IAR-system-Icc17_0_4_196-Opt-INTELMPI2017_3_196-a
+	)
+	fvSolutionArray=(
+	    PCG-FDIC	
+	    PPCG-FDIC
+	    PCGCG-FDIC
+	)
+     ;;
+esac
+
+makeCases()
+{
+    local mx=120
+    local my=65
+    local mz=48
+    local deltaT=0.004
+    local endTime=0.204
+
+    cp -a ../template cases
+
+    sed -i \
+    -e s/"^ *mx .*"/"mx $mx;"/ \
+    -e s/"^ *my .*"/"my $my;"/ \
+    -e s/"^ *mz .*"/"mz $mz;"/ \
+    cases/system/blockMeshDict
+
+    cp cases/system/blockMeshDict cases/constant/polyMesh/
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/controlDict
+
+    cat >> cases/system/controlDict <<EOF
+libs
+(
+  "libPipelinedSolvers.so"
+);
+
+/*
+DebugSwitches
+{
+    SolverPerformance   2;
+    lduMatrix           2;  
+    PCGCG               2;
+    PPCG                2;
+    GACG                2;
+    Pstream             2;
+}
+*/
+EOF
+
+    sed -i \
+    -e s/"^ *deltaT .*"/"deltaT $deltaT;"/ \
+    -e s/"^ *endTime .*"/"endTime $endTime;"/ \
+    cases/system/fvSolution
+}
+
+NumberOfBatchQueue()
+{
+    rbstat -l | grep "^[0-9]" | wc -l
+}
+
+BatchSubmit()
+{
+    local BATCHFILE=$1
+    local MPI=$2
+
+    echo "BATCHFILE: $BATCHFILE" 
+    echo "MPI: $MPI" 
+
+    if [ "$BATCHFILE" = "pre.sh" -o "$BATCHFILE" = "decomposePar.sh" ];then
+        local NPROCS_PER_NODE=36
+    else
+        local NPROCS_PER_NODE=`echo $BATCHFILE | cut  -d "-"  -f 1 | tr -d 'n'`
+    fi
+
+    echo "NPROCS_PER_NODE: $NPROCS_PER_NODE" 
+
+    local NODE=`echo "($MPI + $NPROCS_PER_NODE - 1)/ $NPROCS_PER_NODE" | bc`
+
+    echo "NODE: $NODE" 
+
+    if [ "$BATCHFILE" != "pre.sh" -a "$BATCHFILE" != "decomposePar.sh" ];then
+	local MPI_TMP=`echo "$NODE * $NPROCS_PER_NODE" | bc`
+	echo "NODE * NPROCS_PER_NODE: $MPI_TMP"
+        if [ $MPI -ne $MPI_TMP ];then
+	    echo "Number of MPI is mismatch. Skip running."
+  	    return 0
+	fi  
+    fi
+
+    local GROUP="gz00"
+	
+    if [ $NODE -le 24 ];then	
+	QUEUE="u-debug"
+	WALLTIME="00:15:00"
+    else
+	QUEUE="u-regular"
+	WALLTIME="00:05:00"
+    fi
+
+    qsub \
+	-W group_list=$GROUP \
+	-q $QUEUE \
+	-l walltime=$WALLTIME \
+	-l select=$NODE:ncpus=$NPROCS_PER_NODE:mpiprocs=$NPROCS_PER_NODE:ompthreads=1 \
+	$BATCHFILE
+}
