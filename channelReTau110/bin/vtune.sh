@@ -22,11 +22,11 @@ application=`sed -ne 's/^ *application[ \t]*\([a-zA-Z]*\)[ \t]*;.*$/\1/p' cases/
 
 logs=""
 
-for decomposeParDict in `echo ${decomposeParDictArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
+for decomposeParDict in `echo ${decomposeParDictArray[@]} | tr ' ' '\n' | sort -d | tr '\n' ' '`
 do
-    for fvSolution in `echo ${fvSolutionArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
+    for fvSolution in `echo ${fvSolutionArray[@]} | tr ' ' '\n' | sort -d | tr '\n' ' '`
     do
-	for solveBatch in `echo ${solveBatchArray[@]} | tr ' ' '\n' | sort | tr '\n' ' '`
+	for solveBatch in `echo ${solveBatchArray[@]} | tr ' ' '\n' | sort -d | tr '\n' ' '`
 	do
 	    Dir=$caseDir/$decomposeParDict/$fvSolution/$solveBatch
 	    echo "Dir= $Dir"
@@ -37,20 +37,24 @@ do
 		grep "^End" $log >& /dev/null 
 		[ "$?" -ne 0 ] && continue
 
-		Host=`grep '^Host   *:' $log | sed "s/.*: \"\(.*\)\"$/\1/"`
+		vtunedir=$log.vtune
 
-		vtunedir=$log.vtune.$Host
-		vtunelog=$vtunedir.txt
+		vtunelog=$vtunedir.csv
 		if [ -d $vtunedir -a ! -f $vtunelog ]
 		then
-		    amplxe-cl -R hotspots -r $vtunedir -q > $vtunelog
+		    amplxe-cl \
+			-R hotspots \
+			-r $vtunedir \
+			-q \
+			-format=csv \
+		    > $vtunelog
 		    if [ $? -ne 0 ];then
 			rm -f $vtunelog
 		    fi
 		fi
 		if [ -f $vtunelog ]
 		then
-		    newlog=$Dir/log.${application}.vtune.${n}th
+		    newlog=$Dir/log.${application}.vtune.${n}th.csv
 		    cp -a $vtunelog $newlog
 		    n=`expr $n + 1`
 		    logs="$logs $newlog"
