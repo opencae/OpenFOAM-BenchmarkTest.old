@@ -389,7 +389,7 @@ def mpiParallelEfficiency(args,data,column,ylabel):
 if __name__ == '__main__':
     args=parser()
 
-    data=np.genfromtxt(args.csvFilename, names=True, delimiter=',', dtype=None)
+    data=np.genfromtxt(args.csvFilename, names=True, delimiter=',', dtype=None, encoding='utf-8')
 
     if args.batchFileName==None:
         args.batchFileNameList=pd.unique(data['solveBatch'])
