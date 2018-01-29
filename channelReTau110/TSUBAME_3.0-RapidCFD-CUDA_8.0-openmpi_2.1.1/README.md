@@ -19,7 +19,7 @@
 * ビルドに使用したコンパイラ: nvcc (cuda 8.0)
 * コンパイラの最適化オプション: -O3
 * 使用したMPIライブラリ: openmpi-2.1.1
-* その他特記事項:
+* その他特記事項:本計測は、https://github.com/aokomoriuta/VandV/tree/for_rapidcfd にて公開されている実験設定を使わせて頂きました。fieldAverage関数がコメントアウトされている、実行ステップ数が少ないなどの相違点がございます。
 
 ## References
 1. GPU・メニーコアにおけるOpenFOAMの高度化支援紹介, 山岸孝輝、井上義昭、青柳哲雄、浅見曉, 第1回CAEワークショップ, 秋葉原 UDX Gallery NEXT, 2017年12月6日, http://www.hpci-office.jp/invite2/documents2/ws_cae_171206_yamagishi.pdf
