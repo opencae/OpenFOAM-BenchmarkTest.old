@@ -63,7 +63,7 @@ do
 		Date=`grep '^Date  *:' $log | sed "s/.*: \(.*\)$/\1/"`
 		Time=`grep '^Time  *:'  $log | sed "s/.*: \(.*\)$/\1/"`
 		nProcs=`grep '^nProcs  *:' $log | sed "s/.*: \(.*\)$/\1/"`
-		nNodes=`grep "^\"" $log | sed -e "s/^\"//" -e "s/\.[^\.]*$//" | uniq | wc -l`
+		nNodes=`grep "^\"" $log | sed -e "s/^\"//" -e "s/\.[^\.]*$//" | sort | uniq | wc -l`
 		Co=`grep "^Courant Number" $log | tail -n 1 | cut -d ' ' -f 4,6 | tr ' ' ','`
 		Ux=`grep "Solving for Ux," $log | tail -n 1 | cut -d ' ' -f 9,13,16 | tr -d ' '`
 		Uy=`grep "Solving for Uy," $log | tail -n 1 | cut -d ' ' -f 9,13,16 | tr -d ' '`
